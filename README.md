@@ -1,2 +1,3 @@
-# SeferTorah
-app of torah
+# sefertorah
+
+A Flutter project

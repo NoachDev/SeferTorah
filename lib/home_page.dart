@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HomePage extends StatelessWidget {
+
+  final Function openSefer;
+
+  const HomePage({
+    super.key,
+    required this.openSefer
+  });
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor:  Theme.of(context).colorScheme.background,
       appBar: PreferredSize(
-        preferredSize: Size( double.infinity, 60 ),
+        preferredSize: Size( double.infinity, 58 ),
         child: TopBar(),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           SeferLibrary( tabNames : {
-            "test" : SeferView( itemHeight : 35, itemsNames: [ "init", "perek", "abcdfghj" ] ),
+            "test" : SeferView( openSefer : openSefer, itemHeight : 35, itemsNames: [ "init", "perek", "abcdfghj" ] ),
             "another" : Container()
             }
           ),
@@ -147,38 +156,38 @@ class SeferView extends StatelessWidget {
 
   final double itemPadding;
 
+  final Function openSefer;
+
   const SeferView({
     super.key,
+    required this.openSefer,
     required this.itemHeight,
     this.itemsNames = const [],
     this.itemPadding = 3
   });
 
   Widget seferWidget( BuildContext context, int pageCount ){
+    String segerName = itemsNames[pageCount];
+
     return Container(
       width: double.infinity,
       height: itemHeight + itemPadding,
       padding: EdgeInsets.only(bottom: itemPadding),
 
       child: ElevatedButton(
-        onPressed: (){},
+        onPressed: () => openSefer("aaaa"),
 
         style: ButtonStyle(
-          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
-            )
-          ),
+          shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder()),
           elevation: MaterialStateProperty.all<double>(0),
-          
-
         ),
 
         child: Row(
           children: [
-            Icon( Icons.book_sharp, color: Theme.of(context).colorScheme.primary, size: itemHeight*0.75),
+            Icon( Icons.book_sharp, color: Theme.of(context).colorScheme.tertiary, size: itemHeight*0.75),
             SizedBox(width: 20),
             Text(
-              itemsNames[pageCount],
+              segerName,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.inverseSurface,
                 fontFamily: "PoiretOne",
@@ -200,9 +209,3 @@ class SeferView extends StatelessWidget {
     );
   } 
 }
-
-
-
-
-
-

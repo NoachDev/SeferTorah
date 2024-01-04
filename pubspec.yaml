@@ -17,6 +17,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   provider: ^6.0.0
   flutter_svg: ^2.0.9
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:
@@ -31,16 +32,24 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/icons/book.svg
-    - assets/icons/calendar.svg
-    - assets/icons/comunity.svg
-    - assets/icons/home.svg
+    - assets/icons/
+    - assets/library/viewLibrary/all/thilim/
+    - assets/library/viewLibrary/all/Perek-Shira/
+    - assets/library/viewLibrary/another/sidur/
+    - assets/library/viewLibrary/
+
 
   fonts:
     - family: PoiretOne
     
       fonts:
         - asset: fonts/PoiretOne-Regular.ttf
+
+    - family: Ruthie
+    
+      fonts:
+        - asset: fonts/Ruthie-Regular.ttf
+
 
 
   # To add assets to your application, add an assets section, like this:

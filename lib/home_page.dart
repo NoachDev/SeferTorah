@@ -1,5 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/services.dart';
 
 class HomePage extends StatelessWidget {
 
@@ -21,11 +23,7 @@ class HomePage extends StatelessWidget {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          SeferLibrary( tabNames : {
-            "test" : SeferView( openSefer : openSefer, itemHeight : 35, itemsNames: [ "init", "perek", "abcdfghj" ] ),
-            "another" : Container()
-            }
-          ),
+          SeferLibrary( open : openSefer),
         ]
       ),
     );
@@ -45,6 +43,7 @@ class TopBar extends StatelessWidget {
       backgroundColor: Theme.of(context).colorScheme.surface,
       leading: Row(children: [SizedBox(width: 10,), IconButton( onPressed: () {}, icon: Icon(Icons.account_circle_rounded, size: sizeIcon*1.7), color: Theme.of(context).colorScheme.surface,)]),
       leadingWidth: 100,
+      
       actions: [
         IconButton( onPressed: () {}, icon: Icon(Icons.search, size: sizeIcon, color: Theme.of(context).colorScheme.inverseSurface)),
         IconButton( onPressed: () {}, icon: Icon(Icons.settings, size : sizeIcon, color: Theme.of(context).colorScheme.inverseSurface,)),
@@ -74,18 +73,50 @@ class TopBar extends StatelessWidget {
   }
 }
 
-class SeferLibrary extends StatelessWidget {
-  final Map<String,Widget> tabNames;
+class SeferLibrary extends StatefulWidget {
+  final Function open;
+
+  const SeferLibrary({
+    super.key,
+    required this.open,
+
+  });
+
+  @override
+  State<SeferLibrary> createState() => _SeferLibraryState();
+}
+
+class _SeferLibraryState extends State<SeferLibrary> {
+
   final double radius     = 10; 
   final double tabHeight  = 45;
   final double tabWidth   = 75;
   final double padding    = 10;
 
-  const SeferLibrary({
-    super.key,
-    required this.tabNames,
+  List<Widget> tabWidgets = [];
+  List<Widget> tabNames = [];
 
-  });
+  void genSefer(){
+
+    rootBundle.loadString("assets/library/viewLibrary/config.json").then((asset){
+      var jsonfile = jsonDecode(asset);
+
+      setState(() {
+        jsonfile.forEach((key, value){
+            tabNames.add(Tab( height: tabHeight, text: key ));
+            tabWidgets.add(SeferView(openSefer : widget.open, itemHeight : 35, itemsNames: value, tabName : key ));
+        });
+      });
+    });
+
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    genSefer();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +161,7 @@ class SeferLibrary extends StatelessWidget {
                   fontFamily: "PoiretOne",
                 ),
 
-                tabs: tabNames.keys.map((e) => Tab( height: tabHeight, text: e )).toList()
+                tabs: tabNames.reversed.toList()
 
               )
             ),
@@ -140,7 +171,7 @@ class SeferLibrary extends StatelessWidget {
             SizedBox(
               height: 330,
               child: TabBarView(
-                children: tabNames.values.toList(),
+                children: tabWidgets.reversed.toList(),
               ),
             )
           ],
@@ -152,22 +183,25 @@ class SeferLibrary extends StatelessWidget {
 
 class SeferView extends StatelessWidget {
   final double itemHeight;
-  final List<String> itemsNames;
+  final List itemsNames;
 
   final double itemPadding;
 
   final Function openSefer;
+  final String tabName;
 
   const SeferView({
     super.key,
     required this.openSefer,
     required this.itemHeight,
+    required this.tabName,
     this.itemsNames = const [],
     this.itemPadding = 3
   });
 
   Widget seferWidget( BuildContext context, int pageCount ){
-    String segerName = itemsNames[pageCount];
+    String seferName = itemsNames[pageCount];
+    Map<String, Map<String, dynamic>> seferBookMarks = {};
 
     return Container(
       width: double.infinity,
@@ -175,7 +209,19 @@ class SeferView extends StatelessWidget {
       padding: EdgeInsets.only(bottom: itemPadding),
 
       child: ElevatedButton(
-        onPressed: () => openSefer("aaaa"),
+        onPressed: (){
+          seferBookMarks = {
+            tabName : {
+              seferName : {
+                "charpters": [],
+                "view" : true
+              },
+            }
+
+          };
+
+          openSefer(seferBookMarks);
+        },
 
         style: ButtonStyle(
           shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder()),
@@ -187,7 +233,7 @@ class SeferView extends StatelessWidget {
             Icon( Icons.book_sharp, color: Theme.of(context).colorScheme.tertiary, size: itemHeight*0.75),
             SizedBox(width: 20),
             Text(
-              segerName,
+              seferName,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.inverseSurface,
                 fontFamily: "PoiretOne",

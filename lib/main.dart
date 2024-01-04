@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:sefertorah/Components/sefer_read.dart';
+import 'package:sefertorah/Components/SeferRead/main.dart';
 import 'package:sefertorah/home_page.dart';
 
 void main() {
@@ -63,17 +63,17 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home>{
   final bodyController = PageController(initialPage: 1);
-  Map<String, List<double>> seferBookMark = {};
+  Map<String, Map<String, dynamic>> seferBookMark = {};
 
   int widgetId = 0;
   int currentPage = 1;
 
   @override
   Widget build(BuildContext context) {
-    void openSefer(bookMarks) {
+    void openSefer(Map<String, Map<String, dynamic>> bookMarks) {
       setState(() {
         widgetId = 1;
-        // seferBookMark = bookMarks;
+        seferBookMark = bookMarks;
         Provider.of<BottomBarState>(context, listen: false).hidenBottomBar();
 
       });

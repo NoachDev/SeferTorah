@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:ui' as ui;
 
 import 'package:sefertorah/Components/SeferRead/navegatiun.dart';
+import 'package:path/path.dart' as path;
 
 class SeferRead extends StatelessWidget {
   // |-------------------------------------------------------------------------|
@@ -68,6 +69,7 @@ class SeferView extends StatefulWidget {
 class _SeferViewState extends State<SeferView> {
   late List seferCharpters;
   late bool viewSefer;
+  late String? pathSefer;
 
   late Map<String, Map<int, String>> bookList;
 
@@ -104,19 +106,22 @@ class _SeferViewState extends State<SeferView> {
   Map<String, dynamic> dataText = {
   };
 
+  String getPath(bool config){
+    String filePath =  path.join("assets", "library", viewSefer? "viewLibrary" : "", pathName, viewSefer ? "" : pathSefer, seferName);
+
+    if (config){
+      return path.join(filePath, "config.json");
+    }
+    else{
+      return path.join(filePath, "$currentSpage.json");
+    }
+  }
+
   void loadJsonFromAssets() async {
     String filePath;
 
-    if (viewSefer){
-      filePath = "assets/library/viewLibrary/$pathName/$seferName/$currentSpage.json";
-    }
-
-    else{
-      filePath = "";
-    }
-
     try {
-      String jsonString = await rootBundle.loadString(filePath);
+      String jsonString = await rootBundle.loadString(getPath(false));
 
       setState(() {
           dataText = jsonDecode(jsonString)["Text"];
@@ -140,6 +145,7 @@ class _SeferViewState extends State<SeferView> {
     seferName = widget.bookMarks[pathName]!.keys.elementAt(currentSefer);
     seferCharpters = widget.bookMarks[pathName]![seferName]["charpters"];
     viewSefer = widget.bookMarks[pathName]![seferName]["view"];
+    pathSefer = widget.bookMarks[pathName]![seferName]["path"];
   }
 
   // currentSpage between [0, dataConfig[currentTab]![seferName](number of pages in Sefer)]  
@@ -283,17 +289,9 @@ class _SeferViewState extends State<SeferView> {
     resetSateBars();
     updateValues();
 
-    late String newConfig ;
+    late String newConfig = getPath(true) ;
     vowels = true;
     textLayout = true;
-
-    if (viewSefer){
-      newConfig = "assets/library/viewLibrary/$pathName/$seferName/config.json";
-    }
-
-    else{
-      newConfig = "";
-    }
 
     rootBundle.loadString(newConfig).then((asset){
       dataConfig = jsonDecode(asset);

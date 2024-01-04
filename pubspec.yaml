@@ -33,10 +33,12 @@ flutter:
 
   assets:
     - assets/icons/
-    - assets/library/viewLibrary/all/thilim/
     - assets/library/viewLibrary/all/Perek-Shira/
     - assets/library/viewLibrary/another/sidur/
     - assets/library/viewLibrary/
+    - assets/library/_tanakh/ketuvim/thilim/
+    - assets/library/_tanakh/neviim/reis aleph/
+    - assets/library/_tanakh/romash/bereshit/
 
 
   fonts:

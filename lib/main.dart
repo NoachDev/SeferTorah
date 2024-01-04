@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sefertorah/Components/SeferRead/main.dart';
 import 'package:sefertorah/home_page.dart';
+import 'package:sefertorah/tanakh_page.dart';
 
 void main() {
   runApp(
@@ -91,7 +92,7 @@ class _HomeState extends State<Home>{
     Widget buildBody(BuildContext context, int countPage){
     switch (currentPage){
       case 0:
-        return Container();
+        return TanakhPage(openSefer: openSefer);
       case 2:
         return Container();
       case 3:

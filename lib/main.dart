@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,10 +18,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp.router(  // material app with router
         debugShowCheckedModeBanner: false,
         title: 'SeferTorah',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            brightness: Brightness.light, seedColor: const Color.fromARGB(255, 0, 0, 0)),
-          useMaterial3: true),
+        theme: AppTheme.darkTheme,
         routerConfig: _router, // router configuration
       )
     );
@@ -84,8 +82,8 @@ class RootLayout extends StatelessWidget {
       body : child,
       bottomNavigationBar: SafeArea(
         child: Container(
-          color: Color.fromARGB(255, 36, 36, 38),
-          height: 70,
+          color: Theme.of(context).colorScheme.tertiary,
+          height: 100,
           padding: const EdgeInsets.all(8),
           child: const NavBottomBar(),
         )
@@ -166,53 +164,6 @@ class Screen3 extends StatelessWidget {
   }
 }
 
-// ===== BARRA DE NAVEGAÇÃO =====
-
-class IconBottomBar extends StatelessWidget {
-  final String routeName;
-  final IconData icon;
-  final String currentRoute;
-
-  const IconBottomBar({
-    super.key,
-    required this.routeName,
-    required this.icon,
-    required this.currentRoute,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    bool isSelected = currentRoute == '/$routeName';
-
-    return GestureDetector(
-      onTap: () {
-        GoRouter.of(context).goNamed(routeName);
-        context.read<AppState>().setRoute('/$routeName');
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: isSelected ? Colors.green : Colors.white,
-            size: 28,
-          ),
-          if (isSelected)
-            Container(
-              width: 6,
-              height: 6,
-              margin: const EdgeInsets.only(top: 4),
-              decoration: const BoxDecoration(
-                color: Colors.green,
-                shape: BoxShape.circle,
-              ),
-            )
-        ],
-      ),
-    );
-  }
-}
-
 class NavBottomBar extends StatelessWidget {
   const NavBottomBar({super.key});
 
@@ -220,7 +171,8 @@ class NavBottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 35,
       children: [
         IconButton(onPressed: () => GoRouter.of(context).goNamed("calendar"), icon: SvgPicture.asset(
           'assets/icons/calendar.svg',
@@ -229,20 +181,34 @@ class NavBottomBar extends StatelessWidget {
           colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)
           )
         ),
-        IconButton(onPressed: () => GoRouter.of(context).goNamed("home"), icon: SvgPicture.asset(
-          'assets/icons/home.svg',
-          semanticsLabel: 'home widget',
-          height: 20,
-          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)
+        GestureDetector(
+          onTap: () => GoRouter.of(context).goNamed("home"),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.rectangle,
+              border: Border.all(color: Colors.white60, width: 0.4),
+              borderRadius: BorderRadius.all(Radius.circular(100)),
+            ),
+
+            width: 120,
+            height: 50,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: 15,
+              children: [
+                SvgPicture.asset(
+                  'assets/icons/home.svg',
+                  semanticsLabel: 'home widget',
+                  height: 25,
+                  colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.secondary, BlendMode.srcIn)
+                ),
+                const Text('home', style: TextStyle(fontSize: 12, color: Colors.white)),
+              ],
+            ),
           )
         ),
-        IconButton(onPressed: () => GoRouter.of(context).goNamed("comunity"), icon: SvgPicture.asset(
-          'assets/icons/comunity.svg',
-          semanticsLabel: 'comunity widget',
-          height: 20,
-          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn)
-          )
-        ),
+        
+        IconButton(onPressed: () => GoRouter.of(context).goNamed("comunity"), icon: Icon(Icons.arrow_forward_ios, size: 16,) ),
       ],
     );
   }

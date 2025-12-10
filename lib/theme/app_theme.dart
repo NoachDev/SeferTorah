@@ -20,6 +20,7 @@ class AppTheme {
         onSecondary: Colors.black,
       ),
       useMaterial3: true,
+      fontFamily: "PoiretOne",
     );
   }
 }

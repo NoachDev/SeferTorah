@@ -74,9 +74,9 @@ class VertexFontStyleDemo extends StatelessWidget {
           HookeCenterDecorator(),
           ForceDecorator(),
           ForceMotionDecorator(),
-          TimeCounterDecorator(),
-          CoulombDecorator(),
-          GraphRouteDecorator()
+          // TimeCounterDecorator(),
+          // CoulombDecorator(),
+          // GraphRouteDecorator()
       ]),
       convertor: MapConvertor(),
       options: Options()

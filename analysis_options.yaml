@@ -26,3 +26,10 @@ linter:
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+analyzer:
+  plugins:
+    - riverpod_lint
+
+plugins:
+  riverpod_lint: <latest version from https://pub.dev/packages/riverpod_lint>

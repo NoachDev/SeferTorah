@@ -1,12 +1,31 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sefertorah/screens/notmakedyet.dart';
 import 'theme/app_theme.dart';
-import 'home.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'screens/home.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
+
+  runApp(const ProviderScope(
+      child: MyApp()
+    )
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -14,14 +33,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider( // app state management
-      create: (context) => AppState(),
-      child: MaterialApp.router(  // material app with router
-        debugShowCheckedModeBanner: false,
-        title: 'SeferTorah',
-        theme: AppTheme.darkTheme,
-        routerConfig: _router, // router configuration
-      )
+    
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      title: 'SeferTorah',
+      theme: AppTheme.darkTheme,
+      routerConfig: _router, // screens under Rootlayout 
     );
   }
 }
@@ -36,7 +53,7 @@ final GoRouter _router = GoRouter(
             GoRoute(
               path: '/home',
               name: 'home',
-              builder: (context, state) => const Screen1(),
+              builder: (context, state) => HomeScreen(),
             )
           ]
         ),
@@ -44,7 +61,7 @@ final GoRouter _router = GoRouter(
             GoRoute(
               path: '/calendar',
               name: 'calendar',
-              builder: (context, state) => const Screen2(),
+              builder: (context, state) => const NotMakedYet(),
             )
           ]
         ),
@@ -52,7 +69,7 @@ final GoRouter _router = GoRouter(
             GoRoute(
               path: '/comunity',
               name: 'comunity',
-              builder: (context, state) => const Screen3(),
+              builder: (context, state) => const NotMakedYet(),
             )
           ]
         ),
@@ -61,9 +78,6 @@ final GoRouter _router = GoRouter(
   ],
 );
 
-class AppState extends ChangeNotifier {
-}
-
 class RootLayout extends StatelessWidget {
   final Widget child;
   final StatefulNavigationShell? navigationShell ;
@@ -71,6 +85,7 @@ class RootLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       body : child,
       bottomNavigationBar: SafeArea(
@@ -85,56 +100,9 @@ class RootLayout extends StatelessWidget {
   }
 }
 
-
-class Screen2 extends StatelessWidget {
-  const Screen2();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tela 2'),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.favorite, size: 80, color: Colors.red),
-            const SizedBox(height: 20),
-            const Text('Tela 2', style: TextStyle(fontSize: 24)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class Screen3 extends StatelessWidget {
-  const Screen3();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tela 3'),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.settings, size: 80, color: Colors.green),
-            const SizedBox(height: 20),
-            const Text('Tela 3', style: TextStyle(fontSize: 24)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class NavBottomBar extends StatefulWidget {
+  const NavBottomBar({super.key});
+
   @override
   State<NavBottomBar> createState() => _NavBottomBarState();
 }
@@ -154,11 +122,8 @@ class _NavBottomBarState extends State<NavBottomBar> {
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 35,
       children: [
-        // SizedBox(
-        //   height: 30,
-        //   child: ,
-        // )
-        Column(
+        // calendar button
+        if(_selectedRoute !=2 )Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             IconButton(onPressed: () => {GoRouter.of(context).goNamed("calendar"), _selectRoute(0)}, icon: SvgPicture.asset(
@@ -178,9 +143,10 @@ class _NavBottomBarState extends State<NavBottomBar> {
                 )
               ),
           ],
-        )
-        ,
-        GestureDetector(
+        ),
+
+        // home button
+        if(_selectedRoute != 2) GestureDetector(
           onTap: () => {
             GoRouter.of(context).goNamed("home"),
             _selectRoute(1)
@@ -188,7 +154,7 @@ class _NavBottomBarState extends State<NavBottomBar> {
           child: AnimatedContainer(
             decoration: BoxDecoration(
               shape: BoxShape.rectangle,
-              border: _selectedRoute == 1 ? Border.all(color: Colors.white60, width: 0.4) : null,
+              border: _selectedRoute == 1 ? Border.all(color: Colors.white60, width: 0.8) : null,
               borderRadius: BorderRadius.all(Radius.circular(100)),
               color: _selectedRoute == 1 ? Theme.of(context).colorScheme.surface.withAlpha(82) : Colors.transparent,
             ),
@@ -203,7 +169,7 @@ class _NavBottomBarState extends State<NavBottomBar> {
                 SvgPicture.asset(
                   'assets/icons/home.svg',
                   semanticsLabel: 'home widget',
-                  height: _selectedRoute == 1 ? 25 : 20,
+                  height: _selectedRoute == 1 ? 23 : 20,
                   colorFilter: ColorFilter.mode(_selectedRoute == 1 ? Theme.of(context).colorScheme.secondary : Colors.white, BlendMode.srcIn)
                 ),
                 if (_selectedRoute == 1 ) const Text('home', style: TextStyle(fontSize: 12, color: Colors.white)),
@@ -212,7 +178,17 @@ class _NavBottomBarState extends State<NavBottomBar> {
           )
         ),
         
-        IconButton(onPressed: () => {GoRouter.of(context).goNamed("comunity"), _selectRoute(2)}, icon: Icon(Icons.arrow_forward_ios, size: 16,) ),
+        // comnunity button
+        IconButton(onPressed: () => {GoRouter.of(context).goNamed(_selectedRoute == 2 ? "home" : "comunity"), _selectRoute(_selectedRoute == 2 ? 1 : 2)}, icon: Icon(_selectedRoute == 2 ? Icons.arrow_back_ios : Icons.arrow_forward_ios, size: 18,) ),
+        
+        // when in comunity :
+          // ziman screen 
+        if (_selectedRoute == 2) IconButton(onPressed: () => {GoRouter.of(context).goNamed("comunity"), _selectRoute(2)}, icon: Icon(Icons.hourglass_empty_rounded, size: 22) ),
+          // maps screen
+        if (_selectedRoute == 2) IconButton(onPressed: () => {GoRouter.of(context).goNamed("comunity"), _selectRoute(2)}, icon: Icon(Icons.map_outlined, size: 22) ),
+          // aleph screen
+        // if (_selectedRoute == 2) IconButton(onPressed: () => {GoRouter.of(context).goNamed("comunity"), _selectRoute(2)}, icon: Icon(Icons.aleph, size: 22) ),
+
       ],
     );
   }

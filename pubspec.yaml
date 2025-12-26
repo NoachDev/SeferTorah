@@ -46,6 +46,7 @@ flutter:
     - assets/icons/calendar.svg
     - assets/icons/comunity.svg
     - assets/icons/home.svg
+    - assets/icons/git.svg
     - assets/images/working.png
 
   fonts:

@@ -125,12 +125,12 @@ class NavBottomBar extends StatefulWidget {
   State<NavBottomBar> createState() => _BottomBarState();
 }
 
-class _iconOfBottomBar extends StatelessWidget {
+class _IconOfBottomBar extends StatelessWidget {
   final Widget icon;
   final int route;
   final int currentRoute;
   final Function(int) select;
-  const _iconOfBottomBar({
+  const _IconOfBottomBar({
     required this.icon,
     required this.route,
     required this.select,
@@ -184,7 +184,7 @@ class _BottomBarState extends State<NavBottomBar> {
       children: [
         // calendar button
         if (_selectedRoute < 2)
-          _iconOfBottomBar(
+          _IconOfBottomBar(
             icon: SvgPicture.asset(
               'assets/icons/calendar.svg',
               semanticsLabel: 'calendar widget',
@@ -258,7 +258,7 @@ class _BottomBarState extends State<NavBottomBar> {
 
         // ziman screen
         if (_selectedRoute >= 2)
-          _iconOfBottomBar(
+          _IconOfBottomBar(
             icon: Icon(Icons.hourglass_empty_rounded, size: 22),
             route: 3,
             currentRoute: _selectedRoute,
@@ -266,7 +266,7 @@ class _BottomBarState extends State<NavBottomBar> {
           ),
         // maps screen
         if (_selectedRoute >= 2)
-          _iconOfBottomBar(
+          _IconOfBottomBar(
             icon: Icon(Icons.map_outlined, size: 22),
             route: 4,
             currentRoute: _selectedRoute,

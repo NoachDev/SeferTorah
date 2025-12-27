@@ -1,18 +1,9 @@
 
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:sefertorah/util.dart';
 
 class NotMakedYet extends StatelessWidget {
   const NotMakedYet({super.key});
-
-  void _launchURL() async {
-   final Uri url = Uri.parse('https://github.com/NoachDev/SeferTorah');
-
-   if (!await launchUrl(url)) {
-        throw Exception('Could not launch $url');
-    }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +16,7 @@ class NotMakedYet extends StatelessWidget {
             const SizedBox(width: 300, child: Text("we are working on this feature, so for maintain the project ", textAlign: TextAlign.center)),
             const SizedBox(height: 20,),
             ElevatedButton(
-              onPressed: _launchURL,
+              onPressed: launchRepo,
               style : ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(200),
                 foregroundColor: Theme.of(context).colorScheme.onPrimary.withAlpha(200),

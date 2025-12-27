@@ -1,12 +1,12 @@
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_graph_view/flutter_graph_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sefertorah/providers/graph_providers.dart';
 import 'package:sefertorah/providers/books_hub.dart';
+import 'package:sefertorah/util.dart';
 
 interface class Forces {
   double betweenVertexes = 10.0;
@@ -258,8 +258,95 @@ class Hub extends ConsumerWidget {
   }
 }
 
+class _PanelButton extends StatelessWidget {
+  final String title;
+  final Widget leading;
+  final String? trailing;
+  final Function()? onTap;
+  final AlignmentGeometry? edgePosition;
+
+  const _PanelButton({
+    required this.title,
+    required this.leading,
+    this.trailing,
+    this.onTap,
+    this.edgePosition,
+  });
+
+  BorderRadiusGeometry getRadius() {
+    var radius = BorderRadius.circular(5);
+    switch (edgePosition) {
+      case Alignment.topCenter:
+        radius = BorderRadius.only(
+          topLeft: Radius.circular(15),
+          topRight: Radius.circular(15),
+          bottomLeft: Radius.circular(5),
+          bottomRight: Radius.circular(5),
+        );
+        break;
+
+      case Alignment.bottomLeft:
+        radius = BorderRadius.only(
+          topLeft: Radius.circular(5),
+          topRight: Radius.circular(5),
+          bottomLeft: Radius.circular(15),
+          bottomRight: Radius.circular(5),
+        );
+        break;
+
+      case Alignment.bottomRight:
+        radius = BorderRadius.only(
+          topLeft: Radius.circular(5),
+          topRight: Radius.circular(5),
+          bottomLeft: Radius.circular(5),
+          bottomRight: Radius.circular(15),
+        );
+        break;
+    }
+
+    return radius;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Expanded(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: getRadius(),
+          ),
+
+          height: 50,
+          padding: const EdgeInsets.only(left: 15, right: 25),
+
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              leading,
+              const SizedBox(width: 15),
+              Text(title, style: const TextStyle(fontSize: 12)),
+              const Spacer(),
+              if (trailing != null)
+                Text(
+                  trailing!,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w400,
+                    fontFamily: "Roboto",
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class Panel extends StatefulWidget {
-  Forces forces = Forces();
+  final Forces forces = Forces();
 
   Panel({super.key});
 
@@ -270,6 +357,13 @@ class Panel extends StatefulWidget {
 class _PanelState extends State<Panel> {
   bool opened = false;
   bool animationInProgress = false;
+
+  final sliderPadding = const EdgeInsets.only(
+    top: 2.0,
+    bottom: 6.0,
+    left: 25,
+    right: 25,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -330,12 +424,7 @@ class _PanelState extends State<Panel> {
                       ),
                       Slider(
                         value: widget.forces.betweenVertexes,
-                        padding: const EdgeInsets.only(
-                          top: 2.0,
-                          bottom: 6.0,
-                          left: 25,
-                          right: 25,
-                        ),
+                        padding: sliderPadding,
                         min: 0,
                         max: 100,
                         onChanged: (value) => {
@@ -353,12 +442,7 @@ class _PanelState extends State<Panel> {
                       ),
                       Slider(
                         value: widget.forces.centerExpand,
-                        padding: const EdgeInsets.only(
-                          top: 2.0,
-                          bottom: 6.0,
-                          left: 25,
-                          right: 25,
-                        ),
+                        padding: sliderPadding,
                         min: 0,
                         max: 100,
                         onChanged: (value) => {
@@ -376,12 +460,7 @@ class _PanelState extends State<Panel> {
                       ),
                       Slider(
                         value: widget.forces.centerContract,
-                        padding: const EdgeInsets.only(
-                          top: 2.0,
-                          bottom: 6.0,
-                          left: 25,
-                          right: 25,
-                        ),
+                        padding: sliderPadding,
                         min: 0,
                         max: 100,
                         onChanged: (value) => {
@@ -399,12 +478,7 @@ class _PanelState extends State<Panel> {
                       ),
                       Slider(
                         value: widget.forces.edgeLenght,
-                        padding: const EdgeInsets.only(
-                          top: 2.0,
-                          bottom: 6.0,
-                          left: 25,
-                          right: 25,
-                        ),
+                        padding: sliderPadding,
                         min: 0,
                         max: 100,
                         onChanged: (value) => {
@@ -416,124 +490,48 @@ class _PanelState extends State<Panel> {
                       Padding(
                         padding: const EdgeInsets.all(12.0),
                         child: Column(
+                          spacing: 5,
                           children: [
-                            Material(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(15),
-                                topRight: Radius.circular(15),
-                                bottomLeft: Radius.circular(5),
-                                bottomRight: Radius.circular(5),
-                              ),
-                              child: const ListTile(
-                                dense: true,
-                                leading: Icon(Icons.admin_panel_settings_sharp),
-                                title: Text(
-                                  "Sua conta",
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                trailing: Text(
-                                  "google",
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w400,
-                                    fontFamily: "Roboto",
-                                  ),
+                            const _PanelButton(
+                              title: "Sua conta",
+                              trailing: "google",
+                              leading: Icon(Icons.admin_panel_settings_sharp),
+                              edgePosition: Alignment.topCenter,
+                            ),
+                            const _PanelButton(
+                              title: "Idioma",
+                              trailing: "portugues",
+                              leading: Icon(Icons.language),
+                            ),
+                            _PanelButton(
+                              title: "Repositorio",
+                              trailing: "portugues",
+                              onTap: launchRepo,
+                              leading: SvgPicture.asset(
+                                'assets/icons/git.svg',
+                                semanticsLabel: 'calendar widget',
+                                height: 20,
+                                colorFilter: const ColorFilter.mode(
+                                  Colors.white,
+                                  BlendMode.srcIn,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 5),
-                            Material(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(5),
-                              child: const ListTile(
-                                dense: true,
-                                leading: Icon(Icons.language),
-                                title: Text(
-                                  "Idioma",
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                trailing: Text(
-                                  "portugues",
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w400,
-                                    fontFamily: "Roboto",
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Material(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(5),
-                              child: ListTile(
-                                dense: true,
-                                leading: SvgPicture.asset(
-                                  'assets/icons/git.svg',
-                                  semanticsLabel: 'calendar widget',
-                                  height: 20,
-                                  colorFilter: const ColorFilter.mode(
-                                    Colors.white,
-                                    BlendMode.srcIn,
-                                  ),
-                                ),
-                                title: const Text(
-                                  "Repositorio",
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 5),
                             Row(
+                              spacing: 5,
                               children: [
-                                Flexible(
-                                  child: Material(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.surface,
-                                    borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(5),
-                                      topRight: Radius.circular(5),
-                                      bottomLeft: Radius.circular(15),
-                                      bottomRight: Radius.circular(5),
-                                    ),
-                                    child: const ListTile(
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 8.0,
-                                      ),
-                                      dense: true,
-                                      leading: Icon(Icons.settings),
-                                      title: Text(
-                                        "config",
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                                    ),
+                                const Flexible(
+                                  child: _PanelButton(
+                                    title: "config",
+                                    leading: Icon(Icons.settings),
+                                    edgePosition: Alignment.bottomLeft,
                                   ),
                                 ),
-                                const SizedBox(width: 5),
-                                Flexible(
-                                  child: Material(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.surface,
-                                    borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(5),
-                                      topRight: Radius.circular(5),
-                                      bottomLeft: Radius.circular(5),
-                                      bottomRight: Radius.circular(15),
-                                    ),
-                                    child: const ListTile(
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 8.0,
-                                      ),
-                                      dense: true,
-                                      leading: Icon(Icons.help),
-                                      title: Text(
-                                        "ajuda",
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                                    ),
+                                const Flexible(
+                                  child: _PanelButton(
+                                    title: "ajuda",
+                                    leading: Icon(Icons.help),
+                                    edgePosition: Alignment.bottomLeft,
                                   ),
                                 ),
                               ],

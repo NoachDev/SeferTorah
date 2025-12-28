@@ -7,12 +7,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:sefertorah/providers/graph_providers.dart';
 import 'package:sefertorah/providers/books_hub.dart';
 import 'package:sefertorah/util.dart';
+import 'package:sefertorah/widgets/home/panel_button.dart';
 
 interface class Forces {
   double betweenVertexes = 10.0;
-  double centerExpand = 100.0;
+  double centerExpand = 1.0;
   double edgeLenght = 100.0;
-  double centerContract = 0.003;
+  double centerContract = 0.001;
 }
 
 class GradientBackground extends StatelessWidget {
@@ -258,93 +259,6 @@ class Hub extends ConsumerWidget {
   }
 }
 
-class _PanelButton extends StatelessWidget {
-  final String title;
-  final Widget leading;
-  final String? trailing;
-  final Function()? onTap;
-  final AlignmentGeometry? edgePosition;
-
-  const _PanelButton({
-    required this.title,
-    required this.leading,
-    this.trailing,
-    this.onTap,
-    this.edgePosition,
-  });
-
-  BorderRadiusGeometry getRadius() {
-    var radius = BorderRadius.circular(5);
-    switch (edgePosition) {
-      case Alignment.topCenter:
-        radius = BorderRadius.only(
-          topLeft: Radius.circular(15),
-          topRight: Radius.circular(15),
-          bottomLeft: Radius.circular(5),
-          bottomRight: Radius.circular(5),
-        );
-        break;
-
-      case Alignment.bottomLeft:
-        radius = BorderRadius.only(
-          topLeft: Radius.circular(5),
-          topRight: Radius.circular(5),
-          bottomLeft: Radius.circular(15),
-          bottomRight: Radius.circular(5),
-        );
-        break;
-
-      case Alignment.bottomRight:
-        radius = BorderRadius.only(
-          topLeft: Radius.circular(5),
-          topRight: Radius.circular(5),
-          bottomLeft: Radius.circular(5),
-          bottomRight: Radius.circular(15),
-        );
-        break;
-    }
-
-    return radius;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Expanded(
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: getRadius(),
-          ),
-
-          height: 50,
-          padding: const EdgeInsets.only(left: 15, right: 25),
-
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              leading,
-              const SizedBox(width: 15),
-              Text(title, style: const TextStyle(fontSize: 12)),
-              const Spacer(),
-              if (trailing != null)
-                Text(
-                  trailing!,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w400,
-                    fontFamily: "Roboto",
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class Panel extends StatefulWidget {
   final Forces forces = Forces();
 
@@ -492,18 +406,18 @@ class _PanelState extends State<Panel> {
                         child: Column(
                           spacing: 5,
                           children: [
-                            const _PanelButton(
+                            const PanelButton(
                               title: "Sua conta",
                               trailing: "google",
                               leading: Icon(Icons.admin_panel_settings_sharp),
                               edgePosition: Alignment.topCenter,
                             ),
-                            const _PanelButton(
+                            const PanelButton(
                               title: "Idioma",
                               trailing: "portugues",
                               leading: Icon(Icons.language),
                             ),
-                            _PanelButton(
+                            PanelButton(
                               title: "Repositorio",
                               trailing: "portugues",
                               onTap: launchRepo,
@@ -521,14 +435,14 @@ class _PanelState extends State<Panel> {
                               spacing: 5,
                               children: [
                                 const Flexible(
-                                  child: _PanelButton(
+                                  child: PanelButton(
                                     title: "config",
                                     leading: Icon(Icons.settings),
                                     edgePosition: Alignment.bottomLeft,
                                   ),
                                 ),
                                 const Flexible(
-                                  child: _PanelButton(
+                                  child: PanelButton(
                                     title: "ajuda",
                                     leading: Icon(Icons.help),
                                     edgePosition: Alignment.bottomLeft,
@@ -554,7 +468,10 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    /// TODO : Made the sliders in panel change the forces in Graph by graph.algorithm.decorators.[propiety]
     final myPanel = Panel();
+
     return GradientBackground(
       child: Stack(
         children: [

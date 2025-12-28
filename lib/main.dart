@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sefertorah/screens/notmakedyet.dart';
+import 'package:sefertorah/screens/text_viewer.dart';
 import 'package:sefertorah/widgets/global.dart';
 import 'theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -76,6 +77,22 @@ final GoRouter _router = GoRouter(
         ),
       ],
     ),
+    StatefulShellRoute.indexedStack(
+
+      builder: (context, state, navigationShell) => ReadViewerLayout(body: navigationShell),
+      branches: [
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.textViewer,
+              builder: (context, state){
+                return TextViewer(controller: BooksController.initial());
+              },
+            ),
+          ],
+        ),
+      ],
+    ),
   ],
 );
 
@@ -104,3 +121,18 @@ class RootLayout extends StatelessWidget {
   }
 }
 
+class ReadViewerLayout extends StatelessWidget {
+  final Widget? body;
+
+  const ReadViewerLayout({super.key, this.body});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        body!,
+        ExtendedWidget()
+      ],
+    );
+  }
+}

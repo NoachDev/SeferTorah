@@ -3,10 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-final getVertexes = FutureProvider.family<List<Map>, String?>((
-  ref,
-  String? father,
-) async {
+Future<List<Map<dynamic, dynamic>>> repositoryVertex(String? father) async {
   late Query<Map<String, dynamic>> query;
 
   if (father != null) {
@@ -38,6 +35,13 @@ final getVertexes = FutureProvider.family<List<Map>, String?>((
           : ["index${data["group"]}"],
     };
   }).toList();
+}
+
+final getVertexes = FutureProvider.family<List<Map>, String?>((
+  ref,
+  String? father,
+) {
+  return repositoryVertex(father);
 });
 
 final getEdges = FutureProvider((ref) async {

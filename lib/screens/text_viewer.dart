@@ -70,7 +70,7 @@ String numberToCharcter(int number) {
       ret +=  p2p[numAbs]!;
     }
   }
-  
+
   return ret;
 }
 
@@ -141,19 +141,18 @@ class TextViewer extends StatelessWidget {
               itemBuilder: (context, index) {
                 bool isSelected = false;
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 15),
-
-                  child: StatefulBuilder(
-                    builder: (context, setState) {
-                      return Row(
+                return StatefulBuilder(
+                  builder: (context, setState) {
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: isSelected ? 20 : 15),
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.center,
 
                         children: [
-                          TextWidget(),
+                          TextWidget(isSelected: isSelected),
                           Padding(
-                            padding: const EdgeInsets.all(20.0),
+                            padding: EdgeInsets.all(isSelected ? 10 : 20.0),
                             child: IconButton(
                               onPressed: () =>
                                   setState(() => isSelected = !isSelected),
@@ -168,9 +167,9 @@ class TextViewer extends StatelessWidget {
                             ),
                           ),
                         ],
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 );
               },
             ),

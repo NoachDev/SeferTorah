@@ -48,6 +48,7 @@ flutter:
     - assets/icons/home.svg
     - assets/icons/git.svg
     - assets/images/working.png
+    - assets/images/staticNoise.png
 
   fonts:
     - family: PoiretOne

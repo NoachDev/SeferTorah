@@ -18,6 +18,7 @@ class AppTheme {
         error: _errorColor,
         onPrimary: Colors.white,
         onSecondary: Colors.black,
+        inversePrimary: Colors.black,
       ),
       useMaterial3: true,
       fontFamily: "PoiretOne",

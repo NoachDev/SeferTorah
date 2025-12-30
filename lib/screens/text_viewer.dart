@@ -22,11 +22,14 @@ interface class BooksController {
   factory BooksController.initial() => BooksController(
     const ["Sefer Any"],
     [Colors.lightBlue.shade100],
-    null,
+    {1: 1},
     null,
   );
 }
 
+/// decimal numer to hebrew system
+///
+/// only for numbers less than 400
 String numberToCharcter(int number) {
   String ret = "";
   String num = number.toString();
@@ -67,7 +70,7 @@ String numberToCharcter(int number) {
         continue;
       }
 
-      ret +=  p2p[numAbs]!;
+      ret += p2p[numAbs]!;
     }
   }
 
@@ -81,6 +84,31 @@ class TextViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isScrolling = false;
+
+    /// get the latest state of the scroll
+    ///
+    /// usable in children widgets
+    bool scrollState() {
+      return isScrolling;
+    }
+
+    /// listen the state of scroll and signal when are scrolling
+    ///
+    /// [notifications] is a ScrollNotification 
+    bool handleScrollUpdate(ScrollUpdateNotification notification) {
+      if (!isScrolling) {
+        isScrolling = true;
+      }
+
+      return false;
+    }
+
+    bool handleScrollEnd(ScrollEndNotification notification) {
+      isScrolling = false;
+      return false;
+    }
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 80,
@@ -105,8 +133,8 @@ class TextViewer extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () => GoRouter.of(context).go(AppRoutes.home),
-            icon: const Icon(Icons.close, color: Colors.black, size: 20,),
-          )
+            icon: const Icon(Icons.close, color: Colors.black, size: 20),
+          ),
         ],
       ),
 
@@ -114,7 +142,7 @@ class TextViewer extends StatelessWidget {
         children: [
           Center(
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(15.0),
               child: Wrap(
                 spacing: 15,
                 crossAxisAlignment: WrapCrossAlignment.center,
@@ -134,44 +162,75 @@ class TextViewer extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: 2,
-              padding: EdgeInsets.only(bottom: 150),
+            child: NotificationListener<ScrollEndNotification>(
+              onNotification: handleScrollEnd,
+              child: NotificationListener<ScrollUpdateNotification>(
+                onNotification: handleScrollUpdate,
+                child: TapRegionSurface(
+                  child: ListView.builder(
+                    itemCount: 10,
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).size.height * 0.55 + 10,
+                    ),
 
-              itemBuilder: (context, index) {
-                bool isSelected = false;
+                    itemBuilder: (context, index) {
+                      bool isSelected = false;
+                      GlobalObjectKey key = GlobalObjectKey(index);
 
-                return StatefulBuilder(
-                  builder: (context, setState) {
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: isSelected ? 20 : 15),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                      void fitScroll() => Scrollable.ensureVisible(
+                        key.currentContext!,
+                        alignment: 0.1,
+                        duration: Durations.long3,
+                      );
 
-                        children: [
-                          TextWidget(isSelected: isSelected),
-                          Padding(
-                            padding: EdgeInsets.all(isSelected ? 10 : 20.0),
-                            child: IconButton(
-                              onPressed: () =>
-                                  setState(() => isSelected = !isSelected),
-                              icon: isSelected
-                                  ? Icon(
-                                      Icons.chevron_right,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimary,
-                                    )
-                                  : Text(numberToCharcter(index + 1)),
+                      return StatefulBuilder(
+                        builder: (context, setState) {
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: isSelected ? 20 : 15,
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
+                            child: Row(
+                              key: key,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+
+                              children: [
+                                TextWidget(
+                                  isSelected: isSelected,
+                                  isScrolling: scrollState,
+                                  fitScroll : fitScroll
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(
+                                    isSelected ? 10 : 20.0,
+                                  ),
+                                  child: IconButton(
+                                    onPressed: () {
+                                      setState(() => isSelected = !isSelected);
+
+                                      if (isSelected) {
+                                        fitScroll();
+                                      }
+                                    },
+                                    icon: isSelected
+                                        ? Icon(
+                                            Icons.chevron_right,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimary,
+                                          )
+                                        : Text(numberToCharcter(index + 1)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
         ],

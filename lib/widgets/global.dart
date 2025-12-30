@@ -29,7 +29,7 @@ class _ExtendedWidgetState extends ConsumerState<ExtendedWidget> {
   /// if satisfies move it to bottom
   void setEndPosition(double velocity) {
     // if the pan is fast or the position are sufficiently draged, so hidden him
-    if (velocity >= -startPosition * 0.4 || position <= startPosition * 0.4) {
+    if (velocity >= -startPosition || position <= startPosition * 0.4) {
       ref.read(extendedController.notifier).hide();
       return;
     }
@@ -44,10 +44,10 @@ class _ExtendedWidgetState extends ConsumerState<ExtendedWidget> {
     final child = ref.watch(extendedController);
     final show = ref.read(extendedController.notifier).showWidget;
 
-    startPosition = -MediaQuery.of(context).size.height * 0.55;
+    startPosition = -MediaQuery.of(context).size.height * 0.5;
 
-    // only climb if the aplication is not running, and
-    // only down if the aplication is not running
+    /// only climb if the aplication is not running, and
+    /// only down if the aplication is not running
     if (show) {
       if (!onExecution) {
         position = endPosition;
@@ -97,8 +97,8 @@ class _ExtendedWidgetState extends ConsumerState<ExtendedWidget> {
 
                 child: Center(
                   child: Container(
-                    width: 80,
-                    height: 7,
+                    width: 70,
+                    height: 6,
                     margin: EdgeInsets.all(30),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(5)),

@@ -135,13 +135,37 @@ class Hub extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final canvasOpened = -MediaQuery.of(context).size.height / 5;
+    final canvasOpened = -MediaQuery.of(context).size.height / 6.5;
 
     final vertexes = ref.watch(getVertexes(null));
     final edges = ref.watch(getEdges);
 
     final isLoading = vertexes.isLoading || edges.isLoading;
     final error = vertexes.error ?? edges.error;
+
+    /// A SnackBar
+    void withoutChildrens() {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          action: SnackBarAction(
+            label: 'Coffee',
+            onPressed: launchRepo,
+            textColor: Theme.of(context).colorScheme.onPrimary,
+            
+          ),
+          content: Text('Esse Node ainda não tem filhos!', style: TextStyle(color:  Theme.of(context).colorScheme.onPrimary, fontFamily: "default")),
+          duration: Duration(seconds: 3),
+          margin: EdgeInsets.symmetric(horizontal: 50, vertical: 10), // Width of the SnackBar.
+          padding: const EdgeInsets.symmetric(
+            horizontal: 15.0,
+            vertical: 5
+          ),
+          behavior: SnackBarBehavior.floating,
+          persist: false,
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
+        ),
+      );
+    }
 
     List vertexesInCache(String id) {
       var vertexes = childrenCache.containsKey(id)
@@ -183,6 +207,11 @@ class Hub extends ConsumerWidget {
         childrenCache[id] = Set.identity();
       }
 
+      if (vertexes.isEmpty) {
+        withoutChildrens();
+        return;
+      }
+
       List<Map> edges = [];
       Map<String, dynamic> books = {};
 
@@ -217,14 +246,16 @@ class Hub extends ConsumerWidget {
     }
 
     myOption.onVertexTapUp = (vertex, event) {
-      if (vertex.picked) {
-        rmChildren(vertex.id);
-        vertex.picked = false;
-        return;
-      }
+      if (!vertex.tags!.contains("index0")) {
+        if (vertex.picked) {
+          rmChildren(vertex.id);
+          vertex.picked = false;
+          return;
+        }
 
-      addChildren(vertex.id);
-      vertex.picked = true;
+        addChildren(vertex.id);
+        vertex.picked = true;
+      }
     };
 
     return Stack(
@@ -419,7 +450,6 @@ class _PanelState extends State<Panel> {
                             ),
                             PanelButton(
                               title: "Repositorio",
-                              trailing: "portugues",
                               onTap: launchRepo,
                               leading: SvgPicture.asset(
                                 'assets/icons/git.svg',
@@ -468,7 +498,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     /// TODO : Made the sliders in panel change the forces in Graph by graph.algorithm.decorators.[propiety]
     final myPanel = Panel();
 

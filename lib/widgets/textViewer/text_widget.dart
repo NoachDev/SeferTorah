@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:sefertorah/providers/global.dart';
 import 'package:sefertorah/widgets/textViewer/bottom_sheet.dart';
 
@@ -31,24 +32,24 @@ class TextWidget extends StatelessWidget {
       "הַמָּֽיִם",
     ],
     this.hebrewTextValues = const [
-      "e a terra",
+      "terra",
       "era",
       "vazio",
       "desordenado",
-      "a escuridão",
+      "escuridão",
       "sobre a face",
-      "tehom [caos]",
-      "o ruach [espirito]",
-      "elohim [Deus]",
+      "tehom",
+      "ruach",
+      "elohim",
       "pairando",
       "sobre a face",
-      "a água",
+      "água",
     ],
     this.translatedText =
         "A terra era sem forma e vazia; e havia trevas sobre a face do abismo, mas o Espírito de Deus pairava sobre a face das águas",
   }) : assert(
          hebrewTextKeys.length == hebrewTextValues.length,
-         "The lenght of Hebrewkeys and Hebrewvalues must be the same",
+         "The lenght of HebrewKeys and HebrewValues must be the same",
        ),
        assert(hebrewTextKeys.length != 0);
 
@@ -56,6 +57,7 @@ class TextWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     String? selectedWord;
 
+    // TODO : Animate
     return Flexible(
       child: Padding(
         padding: EdgeInsets.only(left: isSelected ? 10 : 50),
@@ -91,7 +93,6 @@ class TextWidget extends StatelessWidget {
                       textDirection: TextDirection.rtl,
                       spacing: isSelected ? 10 : 5,
                       children: [
-                        // TODO : Animate
                         for (var e in hebrewTextKeys)
                           StatefulBuilder(
                             builder: (context, setState) {
@@ -114,7 +115,7 @@ class TextWidget extends StatelessWidget {
                                                     "$value $element",
                                               ),
                                               translatedText: translatedText,
-                                              dicioKey : selectedWord!
+                                              dicioKey: selectedWord!,
                                             ),
                                           );
                                     }
@@ -182,9 +183,7 @@ class TextWidget extends StatelessWidget {
                                         child: Text(
                                           e,
                                           softWrap: true,
-                                          style: TextStyle(
-                                            fontSize: isSelected ? 12 : 14,
-                                          ),
+                                          style: GoogleFonts.notoSerifHebrew(),
                                         ),
                                       ),
                                     ],

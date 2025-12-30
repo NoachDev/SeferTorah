@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:sefertorah/util.dart';
 import 'package:sefertorah/widgets/textViewer/text_widget.dart';
 
@@ -95,7 +96,7 @@ class TextViewer extends StatelessWidget {
 
     /// listen the state of scroll and signal when are scrolling
     ///
-    /// [notifications] is a ScrollNotification 
+    /// [notifications] is a ScrollNotification
     bool handleScrollUpdate(ScrollUpdateNotification notification) {
       if (!isScrolling) {
         isScrolling = true;
@@ -118,11 +119,7 @@ class TextViewer extends StatelessWidget {
 
         title: Text(
           controller.booksName.first,
-          style: const TextStyle(
-            fontFamily: "Ruthie",
-            color: Colors.black,
-            fontSize: 32,
-          ),
+          style: GoogleFonts.ruthie(color: Colors.black, fontSize: 32),
         ),
 
         leading: IconButton(
@@ -198,11 +195,11 @@ class TextViewer extends StatelessWidget {
                                 TextWidget(
                                   isSelected: isSelected,
                                   isScrolling: scrollState,
-                                  fitScroll : fitScroll
+                                  fitScroll: fitScroll,
                                 ),
                                 Padding(
                                   padding: EdgeInsets.all(
-                                    isSelected ? 10 : 20.0,
+                                    isSelected ? 15 : 8.0,
                                   ),
                                   child: IconButton(
                                     onPressed: () {
@@ -219,7 +216,12 @@ class TextViewer extends StatelessWidget {
                                               context,
                                             ).colorScheme.onPrimary,
                                           )
-                                        : Text(numberToCharcter(index + 1)),
+                                        : Text(
+                                            numberToCharcter(index + 1),
+                                            style: GoogleFonts.notoSansHebrew(
+                                              fontSize: 16,
+                                            ),
+                                          ),
                                   ),
                                 ),
                               ],

@@ -23,6 +23,7 @@ dependencies:
   cloud_firestore: ^6.1.1
   flutter_riverpod: ^3.0.3
   url_launcher: ^6.3.2
+  google_fonts: ^6.3.3
 
 
 dev_dependencies:
@@ -49,11 +50,3 @@ flutter:
     - assets/icons/git.svg
     - assets/images/working.png
     - assets/images/staticNoise.png
-
-  fonts:
-    - family: PoiretOne
-      fonts:
-        - asset: fonts/PoiretOne-Regular.ttf
-    - family: Ruthie
-      fonts:
-        - asset: fonts/Ruthie-Regular.ttf

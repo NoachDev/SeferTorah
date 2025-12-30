@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   static const Color _primaryColor    = Color(0xFF6E69C8);
@@ -17,11 +18,19 @@ class AppTheme {
         surface: _backgroundColor,
         error: _errorColor,
         onPrimary: Colors.white,
-        onSecondary: Colors.black,
+        onSecondary: Colors.white,
         inversePrimary: Colors.black,
       ),
       useMaterial3: true,
-      fontFamily: "PoiretOne",
+      textTheme: GoogleFonts.poiretOneTextTheme(
+        TextTheme(
+          headlineMedium: TextStyle(
+            fontSize: 15,
+            color: Colors.white,
+          )
+        )
+      ),
+
     );
   }
 }

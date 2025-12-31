@@ -12,16 +12,7 @@ Future<List<Map<dynamic, dynamic>>> repositoryVertex(String? father) async {
     query = _db.collection("Vertexes").where("tag", isEqualTo: "treeHead");
   }
 
-  late QuerySnapshot<Map<String, dynamic>> vertexesSnapshot;
-
-  /// offline first
-  try {
-    vertexesSnapshot = await query.get(GetOptions(source: Source.cache));
-  } catch (e) {
-    vertexesSnapshot = await _db
-        .collection("Vertexes")
-        .get(GetOptions(source: Source.server));
-  }
+  QuerySnapshot<Map<String, dynamic>> vertexesSnapshot = await query.get();
 
   return vertexesSnapshot.docs.map((doc) {
     final data = doc.data();
@@ -37,14 +28,15 @@ Future<List<Map<dynamic, dynamic>>> repositoryVertex(String? father) async {
   }).toList();
 }
 
-final getVertexes = FutureProvider.family<List<Map>, String?>((
+final getVertexes = FutureProvider.autoDispose.family<List<Map>, String?>((
   ref,
   String? father,
-) {
-  return repositoryVertex(father);
+) async {
+  var vertexes =  await repositoryVertex(father);
+  return vertexes;
 });
 
-final getEdges = FutureProvider((ref) async {
+final getEdges = FutureProvider.autoDispose((ref) async {
   final edgesSnapshot = await _db.collection("Edge").get();
 
   return edgesSnapshot.docs.map((doc) {

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sefertorah/providers/global.dart';
-import 'package:sefertorah/widgets/home/library.dart';
+import 'package:sefertorah/widgets/home/bottom_sheet.dart';
 
 class _BooksHub extends Notifier<Map<String, dynamic>> {
   // BooksHub() : super({});
@@ -30,6 +30,6 @@ class _BooksHub extends Notifier<Map<String, dynamic>> {
   }
 }
 
-final booksProvider = NotifierProvider<_BooksHub, Map<String, dynamic>>(
+final booksProvider = NotifierProvider.autoDispose<_BooksHub, Map<String, dynamic>>(
   () => _BooksHub(),
 );

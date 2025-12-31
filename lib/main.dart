@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sefertorah/core/isar/isar_setup.dart';
+import 'package:sefertorah/core/models/text_viewer.dart';
 import 'package:sefertorah/screens/notmakedyet.dart';
 import 'package:sefertorah/screens/text_viewer.dart';
 import 'package:sefertorah/widgets/global.dart';
@@ -13,7 +15,9 @@ import 'util.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  
+  await initializeIsar();
+  
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -86,9 +90,11 @@ final GoRouter _router = GoRouter(
             GoRoute(
               path: AppRoutes.textViewer,
               builder: (context, state){
-                return TextViewer(controller: BooksController.initial());
+                return TextViewer(controller: state.extra != null ? state.extra as BooksController : BooksController.initial());
               },
             ),
+
+            /// TODO : The Config screen
           ],
         ),
       ],

@@ -16,8 +16,17 @@ Um projeto feito com flutter para disponibilizar conteudo de torah com privacida
 
 - [ ] Reader
   - [1/2] ferramentas em uma Bottom Sheet
-  - [ ] Configurações
+    - [ ] Comentarios
+    - [ ] Referencias
+    - [ ] Dicionario
+
   - [ ] Tradutor
+    - [ ] with deep learning
+    - [ ] simple translation
+    - [ ] deep translation
+
+  - [ ] Transliteração
+  - [ ] Configurações
 
 - [ ] calendario
 

@@ -112,7 +112,6 @@ class _CopyWidget extends StatelessWidget {
                       () =>
                           selectedLanguages[index] = !selectedLanguages[index],
                     ),
-                    print(selectedLanguages[index]),
                   },
 
                   children: const [

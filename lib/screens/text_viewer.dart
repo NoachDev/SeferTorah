@@ -1,36 +1,19 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:sefertorah/core/models/text_viewer.dart';
+import 'package:sefertorah/providers/text_viewer.dart';
 import 'package:sefertorah/util.dart';
+import 'package:sefertorah/widgets/textViewer/info_label.dart';
 import 'package:sefertorah/widgets/textViewer/text_widget.dart';
-
-interface class BooksController {
-  final List<String> booksName;
-  final List<Color> colors;
-  final Map<int, int?>? pagesInBook;
-  final Map<int, int?>? versosInPage;
-
-  BooksController(
-    this.booksName,
-    this.colors,
-    this.pagesInBook,
-    this.versosInPage,
-  );
-
-  @Deprecated('only for tests')
-  factory BooksController.initial() => BooksController(
-    const ["Sefer Any"],
-    [Colors.lightBlue.shade100],
-    {1: 1},
-    null,
-  );
-}
 
 /// decimal numer to hebrew system
 ///
 /// only for numbers less than 400
+@Deprecated("old function")
 String numberToCharcter(int number) {
   String ret = "";
   String num = number.toString();
@@ -78,6 +61,7 @@ String numberToCharcter(int number) {
   return ret;
 }
 
+/// TODO : make the features of controller
 class TextViewer extends StatelessWidget {
   final BooksController controller;
 
@@ -135,108 +119,118 @@ class TextViewer extends StatelessWidget {
         ],
       ),
 
-      body: Column(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Wrap(
-                spacing: 15,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text("Capitulo : Test"),
-                  Container(
-                    width: 2,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(2),
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                    height: 25,
-                  ),
-                  Text("Pagina : Test"),
-                ],
+      /// TODO : Save and Load preview scroll ( verse ) and page - when null
+      body: Consumer(
+        builder: (context, ref, child) {
+          var metaData = ref.watch(booksMetaData(controller.booksName.first));
+
+          if (metaData.error != null) {
+            return Center(child: Text(metaData.error.toString()));
+          }
+          
+          if (metaData.isLoading){
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return Column(
+            children: [
+              Container(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width,
+                  maxHeight: 25,
+                ),
+                // padding: const EdgeInsets.all(15.0),
+                margin: EdgeInsets.symmetric(vertical: 15),
+                child: InfoLabel(chpterName: metaData.value![0][0].name!, pageName: metaData.value![1][0],),
               ),
-            ),
-          ),
-          Expanded(
-            child: NotificationListener<ScrollEndNotification>(
-              onNotification: handleScrollEnd,
-              child: NotificationListener<ScrollUpdateNotification>(
-                onNotification: handleScrollUpdate,
-                child: TapRegionSurface(
-                  child: ListView.builder(
-                    itemCount: 10,
-                    padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).size.height * 0.55 + 10,
-                    ),
+              Expanded(
+                child: NotificationListener<ScrollEndNotification>(
+                  onNotification: handleScrollEnd,
+                  child: NotificationListener<ScrollUpdateNotification>(
+                    onNotification: handleScrollUpdate,
+                    child: TapRegionSurface(
+                      child: ListView.builder(
+                        itemCount: 10,
+                        padding: EdgeInsets.only(
+                          bottom:
+                              MediaQuery.of(context).size.height * 0.55 + 10,
+                        ),
 
-                    itemBuilder: (context, index) {
-                      bool isSelected = false;
-                      GlobalObjectKey key = GlobalObjectKey(index);
+                        itemBuilder: (context, index) {
+                          bool isSelected = false;
+                          GlobalObjectKey key = GlobalObjectKey(index);
 
-                      void fitScroll() => Scrollable.ensureVisible(
-                        key.currentContext!,
-                        alignment: 0.1,
-                        duration: Durations.long3,
-                      );
+                          void fitScroll() => Scrollable.ensureVisible(
+                            key.currentContext!,
+                            alignment: 0.1,
+                            duration: Durations.long3,
+                          );
 
-                      return StatefulBuilder(
-                        builder: (context, setState) {
-                          return Padding(
-                            padding: EdgeInsets.only(
-                              bottom: isSelected ? 20 : 15,
-                            ),
-                            child: Row(
-                              key: key,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-
-                              children: [
-                                TextWidget(
-                                  isSelected: isSelected,
-                                  isScrolling: scrollState,
-                                  fitScroll: fitScroll,
+                          return StatefulBuilder(
+                            builder: (context, setState) {
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: isSelected ? 20 : 15,
                                 ),
-                                Padding(
-                                  padding: EdgeInsets.all(
-                                    isSelected ? 15 : 8.0,
-                                  ),
-                                  child: IconButton(
-                                    onPressed: () {
-                                      setState(() => isSelected = !isSelected);
+                                child: Row(
+                                  key: key,
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
 
-                                      if (isSelected) {
-                                        fitScroll();
-                                      }
-                                    },
-                                    icon: isSelected
-                                        ? Icon(
-                                            Icons.chevron_right,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.onPrimary,
-                                          )
-                                        : Text(
-                                            numberToCharcter(index + 1),
-                                            style: GoogleFonts.notoSansHebrew(
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                  ),
+                                  children: [
+                                    TextWidget(
+                                      isSelected: isSelected,
+                                      isScrolling: scrollState,
+                                      fitScroll: fitScroll,
+                                      hebrewTextKeys: ["", ""],
+                                      hebrewTextValues: ["terra", "era"],
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.all(
+                                        isSelected ? 15 : 8.0,
+                                      ),
+                                      child: IconButton(
+                                        onPressed: () {
+                                          setState(
+                                            () => isSelected = !isSelected,
+                                          );
+
+                                          if (isSelected) {
+                                            fitScroll();
+                                          }
+                                        },
+                                        icon: isSelected
+                                            ? Icon(
+                                                Icons.chevron_right,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onPrimary,
+                                              )
+                                            : Text(
+                                                numberToCharcter(index + 1),
+                                                style:
+                                                    GoogleFonts.notoSansHebrew(
+                                                      fontSize: 16,
+                                                    ),
+                                              ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              );
+                            },
                           );
                         },
-                      );
-                    },
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
 }
+

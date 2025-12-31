@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sefertorah/core/models/text_viewer.dart';
 import 'package:sefertorah/providers/global.dart';
 import 'package:sefertorah/util.dart';
 
@@ -62,22 +63,32 @@ class _ListBooksState extends State<ListBooks> {
 
             itemBuilder: (context, index) {
               return Padding(
-                padding: const EdgeInsets.only(bottom : 8.0),
+                padding: const EdgeInsets.only(bottom: 8.0),
                 child: Consumer(
                   builder: (context, WidgetRef ref, child) => TextButton(
                     onPressed: () => {
-                      GoRouter.of(context).push(AppRoutes.textViewer),
-                      ref.read(extendedController.notifier).hide()
+                      GoRouter.of(context).push(
+                        AppRoutes.textViewer,
+                        extra: BooksController(
+                          [widget.books.keys.elementAt(index)],
+
+                          /// TODO : need be geted from graph
+                          [Colors.lightBlue.shade100],
+                          null,
+                          null,
+                        ),
+                      ),
+                      ref.read(extendedController.notifier).hide(),
                     },
-                  
+
                     style: TextButton.styleFrom(
                       // padding: EdgeInsets.all()
-                      alignment: Alignment.centerLeft
+                      alignment: Alignment.centerLeft,
                     ),
-                    
+
                     child: Text(
                       widget.books.keys.elementAt(index),
-                  
+
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onPrimary,
                         fontFamily: Theme.of(

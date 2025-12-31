@@ -26,6 +26,6 @@ class _Controller extends Notifier<Widget?> {
 
 }
 
-final extendedController = NotifierProvider<_Controller, Widget?>(
+final extendedController = NotifierProvider.autoDispose<_Controller, Widget?>(
   () => _Controller(),
 );

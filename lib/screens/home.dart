@@ -478,7 +478,7 @@ class _PanelState extends State<Panel> {
                                   child: PanelButton(
                                     title: "ajuda",
                                     leading: Icon(Icons.help),
-                                    edgePosition: Alignment.bottomLeft,
+                                    edgePosition: Alignment.bottomRight,
                                   ),
                                 ),
                               ],

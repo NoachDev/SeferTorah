@@ -46,15 +46,26 @@ mixin class RepositoryOfBooks {
     throw ErrorDescription("Not find the book \$ $isarId in isar");
   }
 
-  /// Get from isar a page from book with [name]
+  Future<List<List<String>>> _tranfromRefs(Book? isarBook, PageData data) async{
+    isarBook ??= await isar.books.get(isarId);
+
+    return List.empty();
+
+  }
+
+  /// Get from isar a page with [index] from book with [name]
   ///
   /// if not found in isar, serach in firebase
-  Future<PageData?> getPageData(int index) async {
+  /// 
+  /// The Page is a colection ( list of list ) of refrences ( Strings ),
+  ///  reference will in end locate a object in dictionary
+  ///  
+  Future<List<List<String>>?> getPageData(int index) async {
     var isarbook = await _getBook();
 
     if (isarbook != null) {
       if (index >= isarbook.pages.length) {
-        return isarbook.pages[index];
+        return _tranfromRefs(isarbook, isarbook.pages[index]);
       }
 
       var chapter = await getChapterByIndex(isarbook, index);
@@ -76,7 +87,7 @@ mixin class RepositoryOfBooks {
         await isar.books.put(isarbook);
       });
 
-      return page;
+      return _tranfromRefs(isarbook, page);
     }
 
     throw ErrorDescription("Not find the book in isar");

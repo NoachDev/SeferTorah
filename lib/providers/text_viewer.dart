@@ -1,6 +1,6 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sefertorah/core/isar/repositorys.dart';
+import 'package:sefertorah/core/isar/repositories.dart';
 
 class _BookMetaData extends AsyncNotifier<Map> with RepositoryOfBooks {
   _BookMetaData(String bookName) : super(){

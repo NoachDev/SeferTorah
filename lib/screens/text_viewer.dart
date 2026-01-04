@@ -62,13 +62,15 @@ String numberToCharcter(int number) {
 }
 
 /// TODO : make the features of controller
-class TextViewer extends StatelessWidget {
+class TextViewer extends ConsumerWidget {
   final BooksController controller;
 
   const TextViewer({super.key, required this.controller});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    var metaData = ref.watch(booksMetaData(controller.booksName.first));
+
     bool isScrolling = false;
 
     /// get the latest state of the scroll
@@ -107,7 +109,9 @@ class TextViewer extends StatelessWidget {
         ),
 
         leading: IconButton(
-          onPressed: () => GoRouter.of(context).pop(),
+          onPressed: () {
+            GoRouter.of(context).pop();
+          },
           icon: const Icon(Icons.chevron_left, color: Colors.black),
         ),
 
@@ -120,117 +124,110 @@ class TextViewer extends StatelessWidget {
       ),
 
       /// TODO : Save and Load preview scroll ( verse ) and page - when null
-      body: Consumer(
-        builder: (context, ref, child) {
-          var metaData = ref.watch(booksMetaData(controller.booksName.first));
-
-          if (metaData.error != null) {
-            return Center(child: Text(metaData.error.toString()));
-          }
-          
-          if (metaData.isLoading){
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          return Column(
-            children: [
-              Container(
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width,
-                  maxHeight: 25,
+      body: metaData.error != null
+          ? Center(child: Text(metaData.error.toString()))
+          : metaData.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                Container(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width,
+                    maxHeight: 25,
+                  ),
+                  // padding: const EdgeInsets.all(15.0),
+                  margin: EdgeInsets.symmetric(vertical: 15),
+                  child: InfoLabel(
+                    chpterName: metaData.value![0][0].name!,
+                    pageName: metaData.value![1][0],
+                  ),
                 ),
-                // padding: const EdgeInsets.all(15.0),
-                margin: EdgeInsets.symmetric(vertical: 15),
-                child: InfoLabel(chpterName: metaData.value![0][0].name!, pageName: metaData.value![1][0],),
-              ),
-              Expanded(
-                child: NotificationListener<ScrollEndNotification>(
-                  onNotification: handleScrollEnd,
-                  child: NotificationListener<ScrollUpdateNotification>(
-                    onNotification: handleScrollUpdate,
-                    child: TapRegionSurface(
-                      child: ListView.builder(
-                        itemCount: 10,
-                        padding: EdgeInsets.only(
-                          bottom:
-                              MediaQuery.of(context).size.height * 0.55 + 10,
+                Expanded(
+                  child: NotificationListener<ScrollEndNotification>(
+                    onNotification: handleScrollEnd,
+                    child: NotificationListener<ScrollUpdateNotification>(
+                      onNotification: handleScrollUpdate,
+                      child: TapRegionSurface(
+                        child: ListView.builder(
+                          itemCount: 10,
+                          padding: EdgeInsets.only(
+                            bottom:
+                                MediaQuery.of(context).size.height * 0.55 + 10,
+                          ),
+
+                          itemBuilder: (context, index) {
+                            bool isSelected = false;
+                            GlobalObjectKey key = GlobalObjectKey(index);
+
+                            void fitScroll() => Scrollable.ensureVisible(
+                              key.currentContext!,
+                              alignment: 0.1,
+                              duration: Durations.long3,
+                            );
+
+                            return StatefulBuilder(
+                              builder: (context, setState) {
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    bottom: isSelected ? 20 : 15,
+                                  ),
+                                  child: Row(
+                                    key: key,
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+
+                                    children: [
+                                      TextWidget(
+                                        isSelected: isSelected,
+                                        isScrolling: scrollState,
+                                        fitScroll: fitScroll,
+                                        hebrewTextKeys: ["", ""],
+                                        hebrewTextValues: ["terra", "era"],
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.all(
+                                          isSelected ? 15 : 8.0,
+                                        ),
+                                        child: IconButton(
+                                          onPressed: () {
+                                            setState(
+                                              () => isSelected = !isSelected,
+                                            );
+
+                                            if (isSelected) {
+                                              fitScroll();
+                                            }
+                                          },
+                                          icon: isSelected
+                                              ? Icon(
+                                                  Icons.chevron_right,
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.onPrimary,
+                                                )
+                                              : Text(
+                                                  numberToCharcter(index + 1),
+                                                  style:
+                                                      GoogleFonts.notoSansHebrew(
+                                                        fontSize: 16,
+                                                      ),
+                                                ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
                         ),
-
-                        itemBuilder: (context, index) {
-                          bool isSelected = false;
-                          GlobalObjectKey key = GlobalObjectKey(index);
-
-                          void fitScroll() => Scrollable.ensureVisible(
-                            key.currentContext!,
-                            alignment: 0.1,
-                            duration: Durations.long3,
-                          );
-
-                          return StatefulBuilder(
-                            builder: (context, setState) {
-                              return Padding(
-                                padding: EdgeInsets.only(
-                                  bottom: isSelected ? 20 : 15,
-                                ),
-                                child: Row(
-                                  key: key,
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-
-                                  children: [
-                                    TextWidget(
-                                      isSelected: isSelected,
-                                      isScrolling: scrollState,
-                                      fitScroll: fitScroll,
-                                      hebrewTextKeys: ["", ""],
-                                      hebrewTextValues: ["terra", "era"],
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.all(
-                                        isSelected ? 15 : 8.0,
-                                      ),
-                                      child: IconButton(
-                                        onPressed: () {
-                                          setState(
-                                            () => isSelected = !isSelected,
-                                          );
-
-                                          if (isSelected) {
-                                            fitScroll();
-                                          }
-                                        },
-                                        icon: isSelected
-                                            ? Icon(
-                                                Icons.chevron_right,
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onPrimary,
-                                              )
-                                            : Text(
-                                                numberToCharcter(index + 1),
-                                                style:
-                                                    GoogleFonts.notoSansHebrew(
-                                                      fontSize: 16,
-                                                    ),
-                                              ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
-      ),
+              ],
+            ),
     );
   }
 }
-

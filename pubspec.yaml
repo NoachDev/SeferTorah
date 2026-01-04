@@ -28,6 +28,7 @@ dependencies:
   isar: ^3.1.0
   isar_flutter_libs: ^3.1.0
   path_provider: ^2.1.5
+  vector_math: ^2.2.0
 
 
 dev_dependencies:
@@ -37,6 +38,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   # isar_generator: ^3.1.0
   build_runner: any
+  test: ^1.24.9
 
 dependency_overrides:
   flutter_graph_view:

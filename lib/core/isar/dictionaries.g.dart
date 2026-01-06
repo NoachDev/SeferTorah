@@ -17,22 +17,23 @@ const DictSchema = CollectionSchema(
   name: r'Dict',
   id: 987444509729091105,
   properties: {
-    r'abstractLexicalTraits': PropertySchema(
+    r'assinatures': PropertySchema(
       id: 0,
-      name: r'abstractLexicalTraits',
-      type: IsarType.object,
-      target: r'LexicalTraits',
+      name: r'assinatures',
+      type: IsarType.objectList,
+      target: r'Assinatures',
     ),
-    r'categoricalTraits': PropertySchema(
+    r'origin': PropertySchema(
       id: 1,
-      name: r'categoricalTraits',
-      type: IsarType.byteList,
+      name: r'origin',
+      type: IsarType.string,
+      enumMap: _DictoriginEnumValueMap,
     ),
-    r'internalMorphologicalTraits': PropertySchema(
+    r'stage': PropertySchema(
       id: 2,
-      name: r'internalMorphologicalTraits',
-      type: IsarType.object,
-      target: r'MorphologicalTraits',
+      name: r'stage',
+      type: IsarType.string,
+      enumMap: _DictstageEnumValueMap,
     ),
     r'word': PropertySchema(
       id: 3,
@@ -48,6 +49,7 @@ const DictSchema = CollectionSchema(
   indexes: {},
   links: {},
   embeddedSchemas: {
+    r'Assinatures': AssinaturesSchema,
     r'MorphologicalTraits': MorphologicalTraitsSchema,
     r'Mishkal': MishkalSchema,
     r'LexicalTraits': LexicalTraitsSchema,
@@ -65,18 +67,16 @@ int _dictEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 +
-      LexicalTraitsSchema.estimateSize(
-          object.abstractLexicalTraits, allOffsets[LexicalTraits]!, allOffsets);
-  bytesCount += 3 + object.categoricalTraits.length;
+  bytesCount += 3 + object.assinatures.length * 3;
   {
-    final value = object.internalMorphologicalTraits;
-    if (value != null) {
-      bytesCount += 3 +
-          MorphologicalTraitsSchema.estimateSize(
-              value, allOffsets[MorphologicalTraits]!, allOffsets);
+    final offsets = allOffsets[Assinatures]!;
+    for (var i = 0; i < object.assinatures.length; i++) {
+      final value = object.assinatures[i];
+      bytesCount += AssinaturesSchema.estimateSize(value, offsets, allOffsets);
     }
   }
+  bytesCount += 3 + object.origin.name.length * 3;
+  bytesCount += 3 + object.stage.name.length * 3;
   bytesCount += 3 + object.word.length * 3;
   return bytesCount;
 }
@@ -87,19 +87,14 @@ void _dictSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeObject<LexicalTraits>(
+  writer.writeObjectList<Assinatures>(
     offsets[0],
     allOffsets,
-    LexicalTraitsSchema.serialize,
-    object.abstractLexicalTraits,
+    AssinaturesSchema.serialize,
+    object.assinatures,
   );
-  writer.writeByteList(offsets[1], object.categoricalTraits);
-  writer.writeObject<MorphologicalTraits>(
-    offsets[2],
-    allOffsets,
-    MorphologicalTraitsSchema.serialize,
-    object.internalMorphologicalTraits,
-  );
+  writer.writeString(offsets[1], object.origin.name);
+  writer.writeString(offsets[2], object.stage.name);
   writer.writeString(offsets[3], object.word);
 }
 
@@ -109,22 +104,21 @@ Dict _dictDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Dict();
-  object.abstractLexicalTraits = reader.readObjectOrNull<LexicalTraits>(
-        offsets[0],
-        LexicalTraitsSchema.deserialize,
-        allOffsets,
-      ) ??
-      LexicalTraits();
-  object.categoricalTraits = reader.readByteList(offsets[1]) ?? [];
-  object.id = id;
-  object.internalMorphologicalTraits =
-      reader.readObjectOrNull<MorphologicalTraits>(
-    offsets[2],
-    MorphologicalTraitsSchema.deserialize,
-    allOffsets,
+  final object = Dict(
+    assinatures: reader.readObjectList<Assinatures>(
+          offsets[0],
+          AssinaturesSchema.deserialize,
+          allOffsets,
+          Assinatures(),
+        ) ??
+        [],
+    origin: _DictoriginValueEnumMap[reader.readStringOrNull(offsets[1])] ??
+        Origin.native,
+    stage: _DictstageValueEnumMap[reader.readStringOrNull(offsets[2])] ??
+        Stage.biblical,
+    word: reader.readString(offsets[3]),
   );
-  object.word = reader.readString(offsets[3]);
+  object.id = id;
   return object;
 }
 
@@ -136,26 +130,48 @@ P _dictDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readObjectOrNull<LexicalTraits>(
+      return (reader.readObjectList<Assinatures>(
             offset,
-            LexicalTraitsSchema.deserialize,
+            AssinaturesSchema.deserialize,
             allOffsets,
+            Assinatures(),
           ) ??
-          LexicalTraits()) as P;
+          []) as P;
     case 1:
-      return (reader.readByteList(offset) ?? []) as P;
+      return (_DictoriginValueEnumMap[reader.readStringOrNull(offset)] ??
+          Origin.native) as P;
     case 2:
-      return (reader.readObjectOrNull<MorphologicalTraits>(
-        offset,
-        MorphologicalTraitsSchema.deserialize,
-        allOffsets,
-      )) as P;
+      return (_DictstageValueEnumMap[reader.readStringOrNull(offset)] ??
+          Stage.biblical) as P;
     case 3:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
+
+const _DictoriginEnumValueMap = {
+  r'native': r'native',
+  r'aramaic': r'aramaic',
+  r'modern': r'modern',
+};
+const _DictoriginValueEnumMap = {
+  r'native': Origin.native,
+  r'aramaic': Origin.aramaic,
+  r'modern': Origin.modern,
+};
+const _DictstageEnumValueMap = {
+  r'biblical': r'biblical',
+  r'mishnaic': r'mishnaic',
+  r'medieval': r'medieval',
+  r'modern': r'modern',
+};
+const _DictstageValueEnumMap = {
+  r'biblical': Stage.biblical,
+  r'mishnaic': Stage.mishnaic,
+  r'medieval': Stage.medieval,
+  r'modern': Stage.modern,
+};
 
 Id _dictGetId(Dict object) {
   return object.id;
@@ -245,67 +261,11 @@ extension DictQueryWhere on QueryBuilder<Dict, Dict, QWhereClause> {
 }
 
 extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
-  QueryBuilder<Dict, Dict, QAfterFilterCondition>
-      categoricalTraitsElementEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'categoricalTraits',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Dict, Dict, QAfterFilterCondition>
-      categoricalTraitsElementGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'categoricalTraits',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Dict, Dict, QAfterFilterCondition>
-      categoricalTraitsElementLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'categoricalTraits',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Dict, Dict, QAfterFilterCondition>
-      categoricalTraitsElementBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'categoricalTraits',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Dict, Dict, QAfterFilterCondition>
-      categoricalTraitsLengthEqualTo(int length) {
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesLengthEqualTo(
+      int length) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
-        r'categoricalTraits',
+        r'assinatures',
         length,
         true,
         length,
@@ -314,10 +274,10 @@ extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Dict, Dict, QAfterFilterCondition> categoricalTraitsIsEmpty() {
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
-        r'categoricalTraits',
+        r'assinatures',
         0,
         true,
         0,
@@ -326,11 +286,10 @@ extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Dict, Dict, QAfterFilterCondition>
-      categoricalTraitsIsNotEmpty() {
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
-        r'categoricalTraits',
+        r'assinatures',
         0,
         false,
         999999,
@@ -339,14 +298,13 @@ extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Dict, Dict, QAfterFilterCondition>
-      categoricalTraitsLengthLessThan(
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesLengthLessThan(
     int length, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
-        r'categoricalTraits',
+        r'assinatures',
         0,
         true,
         length,
@@ -355,14 +313,13 @@ extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Dict, Dict, QAfterFilterCondition>
-      categoricalTraitsLengthGreaterThan(
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesLengthGreaterThan(
     int length, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
-        r'categoricalTraits',
+        r'assinatures',
         length,
         include,
         999999,
@@ -371,8 +328,7 @@ extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Dict, Dict, QAfterFilterCondition>
-      categoricalTraitsLengthBetween(
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesLengthBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -380,7 +336,7 @@ extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
-        r'categoricalTraits',
+        r'assinatures',
         lower,
         includeLower,
         upper,
@@ -441,20 +397,258 @@ extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Dict, Dict, QAfterFilterCondition>
-      internalMorphologicalTraitsIsNull() {
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> originEqualTo(
+    Origin value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'internalMorphologicalTraits',
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'origin',
+        value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Dict, Dict, QAfterFilterCondition>
-      internalMorphologicalTraitsIsNotNull() {
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> originGreaterThan(
+    Origin value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'internalMorphologicalTraits',
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'origin',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> originLessThan(
+    Origin value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'origin',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> originBetween(
+    Origin lower,
+    Origin upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'origin',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> originStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'origin',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> originEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'origin',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> originContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'origin',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> originMatches(String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'origin',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> originIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'origin',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> originIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'origin',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> stageEqualTo(
+    Stage value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> stageGreaterThan(
+    Stage value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'stage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> stageLessThan(
+    Stage value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'stage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> stageBetween(
+    Stage lower,
+    Stage upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'stage',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> stageStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'stage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> stageEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'stage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> stageContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'stage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> stageMatches(String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'stage',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> stageIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'stage',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> stageIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'stage',
+        value: '',
       ));
     });
   }
@@ -589,17 +783,10 @@ extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
 }
 
 extension DictQueryObject on QueryBuilder<Dict, Dict, QFilterCondition> {
-  QueryBuilder<Dict, Dict, QAfterFilterCondition> abstractLexicalTraits(
-      FilterQuery<LexicalTraits> q) {
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesElement(
+      FilterQuery<Assinatures> q) {
     return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'abstractLexicalTraits');
-    });
-  }
-
-  QueryBuilder<Dict, Dict, QAfterFilterCondition> internalMorphologicalTraits(
-      FilterQuery<MorphologicalTraits> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'internalMorphologicalTraits');
+      return query.object(q, r'assinatures');
     });
   }
 }
@@ -607,6 +794,30 @@ extension DictQueryObject on QueryBuilder<Dict, Dict, QFilterCondition> {
 extension DictQueryLinks on QueryBuilder<Dict, Dict, QFilterCondition> {}
 
 extension DictQuerySortBy on QueryBuilder<Dict, Dict, QSortBy> {
+  QueryBuilder<Dict, Dict, QAfterSortBy> sortByOrigin() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'origin', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterSortBy> sortByOriginDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'origin', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterSortBy> sortByStage() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'stage', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterSortBy> sortByStageDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'stage', Sort.desc);
+    });
+  }
+
   QueryBuilder<Dict, Dict, QAfterSortBy> sortByWord() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'word', Sort.asc);
@@ -633,6 +844,30 @@ extension DictQuerySortThenBy on QueryBuilder<Dict, Dict, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Dict, Dict, QAfterSortBy> thenByOrigin() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'origin', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterSortBy> thenByOriginDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'origin', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterSortBy> thenByStage() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'stage', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterSortBy> thenByStageDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'stage', Sort.desc);
+    });
+  }
+
   QueryBuilder<Dict, Dict, QAfterSortBy> thenByWord() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'word', Sort.asc);
@@ -647,9 +882,17 @@ extension DictQuerySortThenBy on QueryBuilder<Dict, Dict, QSortThenBy> {
 }
 
 extension DictQueryWhereDistinct on QueryBuilder<Dict, Dict, QDistinct> {
-  QueryBuilder<Dict, Dict, QDistinct> distinctByCategoricalTraits() {
+  QueryBuilder<Dict, Dict, QDistinct> distinctByOrigin(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'categoricalTraits');
+      return query.addDistinctBy(r'origin', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QDistinct> distinctByStage(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'stage', caseSensitive: caseSensitive);
     });
   }
 
@@ -668,29 +911,595 @@ extension DictQueryProperty on QueryBuilder<Dict, Dict, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Dict, LexicalTraits, QQueryOperations>
-      abstractLexicalTraitsProperty() {
+  QueryBuilder<Dict, List<Assinatures>, QQueryOperations>
+      assinaturesProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'abstractLexicalTraits');
+      return query.addPropertyName(r'assinatures');
     });
   }
 
-  QueryBuilder<Dict, List<int>, QQueryOperations> categoricalTraitsProperty() {
+  QueryBuilder<Dict, Origin, QQueryOperations> originProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'categoricalTraits');
+      return query.addPropertyName(r'origin');
     });
   }
 
-  QueryBuilder<Dict, MorphologicalTraits?, QQueryOperations>
-      internalMorphologicalTraitsProperty() {
+  QueryBuilder<Dict, Stage, QQueryOperations> stageProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'internalMorphologicalTraits');
+      return query.addPropertyName(r'stage');
     });
   }
 
   QueryBuilder<Dict, String, QQueryOperations> wordProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'word');
+    });
+  }
+}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+extension GetDictSenseLinkCollection on Isar {
+  IsarCollection<DictSenseLink> get dictSenseLinks => this.collection();
+}
+
+const DictSenseLinkSchema = CollectionSchema(
+  name: r'DictSenseLink',
+  id: -7491309477021992405,
+  properties: {
+    r'dictId': PropertySchema(
+      id: 0,
+      name: r'dictId',
+      type: IsarType.long,
+    ),
+    r'indexAssinature': PropertySchema(
+      id: 1,
+      name: r'indexAssinature',
+      type: IsarType.long,
+    ),
+    r'lexicalSenseId': PropertySchema(
+      id: 2,
+      name: r'lexicalSenseId',
+      type: IsarType.long,
+    )
+  },
+  estimateSize: _dictSenseLinkEstimateSize,
+  serialize: _dictSenseLinkSerialize,
+  deserialize: _dictSenseLinkDeserialize,
+  deserializeProp: _dictSenseLinkDeserializeProp,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _dictSenseLinkGetId,
+  getLinks: _dictSenseLinkGetLinks,
+  attach: _dictSenseLinkAttach,
+  version: '3.1.0+1',
+);
+
+int _dictSenseLinkEstimateSize(
+  DictSenseLink object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  return bytesCount;
+}
+
+void _dictSenseLinkSerialize(
+  DictSenseLink object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeLong(offsets[0], object.dictId);
+  writer.writeLong(offsets[1], object.indexAssinature);
+  writer.writeLong(offsets[2], object.lexicalSenseId);
+}
+
+DictSenseLink _dictSenseLinkDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = DictSenseLink(
+    dictId: reader.readLong(offsets[0]),
+    indexAssinature: reader.readLong(offsets[1]),
+    lexicalSenseId: reader.readLong(offsets[2]),
+  );
+  object.id = id;
+  return object;
+}
+
+P _dictSenseLinkDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readLong(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readLong(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+Id _dictSenseLinkGetId(DictSenseLink object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _dictSenseLinkGetLinks(DictSenseLink object) {
+  return [];
+}
+
+void _dictSenseLinkAttach(
+    IsarCollection<dynamic> col, Id id, DictSenseLink object) {
+  object.id = id;
+}
+
+extension DictSenseLinkQueryWhereSort
+    on QueryBuilder<DictSenseLink, DictSenseLink, QWhere> {
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterWhere> anyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+}
+
+extension DictSenseLinkQueryWhere
+    on QueryBuilder<DictSenseLink, DictSenseLink, QWhereClause> {
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterWhereClause> idEqualTo(
+      Id id) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterWhereClause> idNotEqualTo(
+      Id id) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterWhereClause> idGreaterThan(
+      Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: id, includeLower: include),
+      );
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterWhereClause> idLessThan(
+      Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: id, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterWhereClause> idBetween(
+    Id lowerId,
+    Id upperId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+}
+
+extension DictSenseLinkQueryFilter
+    on QueryBuilder<DictSenseLink, DictSenseLink, QFilterCondition> {
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      dictIdEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'dictId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      dictIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'dictId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      dictIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'dictId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      dictIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'dictId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition> idEqualTo(
+      Id value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      idGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition> idLessThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition> idBetween(
+    Id lower,
+    Id upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      indexAssinatureEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'indexAssinature',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      indexAssinatureGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'indexAssinature',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      indexAssinatureLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'indexAssinature',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      indexAssinatureBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'indexAssinature',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      lexicalSenseIdEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lexicalSenseId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      lexicalSenseIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lexicalSenseId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      lexicalSenseIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lexicalSenseId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterFilterCondition>
+      lexicalSenseIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lexicalSenseId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+}
+
+extension DictSenseLinkQueryObject
+    on QueryBuilder<DictSenseLink, DictSenseLink, QFilterCondition> {}
+
+extension DictSenseLinkQueryLinks
+    on QueryBuilder<DictSenseLink, DictSenseLink, QFilterCondition> {}
+
+extension DictSenseLinkQuerySortBy
+    on QueryBuilder<DictSenseLink, DictSenseLink, QSortBy> {
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy> sortByDictId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dictId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy> sortByDictIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dictId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy>
+      sortByIndexAssinature() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'indexAssinature', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy>
+      sortByIndexAssinatureDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'indexAssinature', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy>
+      sortByLexicalSenseId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lexicalSenseId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy>
+      sortByLexicalSenseIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lexicalSenseId', Sort.desc);
+    });
+  }
+}
+
+extension DictSenseLinkQuerySortThenBy
+    on QueryBuilder<DictSenseLink, DictSenseLink, QSortThenBy> {
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy> thenByDictId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dictId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy> thenByDictIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dictId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy> thenById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy> thenByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy>
+      thenByIndexAssinature() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'indexAssinature', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy>
+      thenByIndexAssinatureDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'indexAssinature', Sort.desc);
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy>
+      thenByLexicalSenseId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lexicalSenseId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QAfterSortBy>
+      thenByLexicalSenseIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lexicalSenseId', Sort.desc);
+    });
+  }
+}
+
+extension DictSenseLinkQueryWhereDistinct
+    on QueryBuilder<DictSenseLink, DictSenseLink, QDistinct> {
+  QueryBuilder<DictSenseLink, DictSenseLink, QDistinct> distinctByDictId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'dictId');
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QDistinct>
+      distinctByIndexAssinature() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'indexAssinature');
+    });
+  }
+
+  QueryBuilder<DictSenseLink, DictSenseLink, QDistinct>
+      distinctByLexicalSenseId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lexicalSenseId');
+    });
+  }
+}
+
+extension DictSenseLinkQueryProperty
+    on QueryBuilder<DictSenseLink, DictSenseLink, QQueryProperty> {
+  QueryBuilder<DictSenseLink, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<DictSenseLink, int, QQueryOperations> dictIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'dictId');
+    });
+  }
+
+  QueryBuilder<DictSenseLink, int, QQueryOperations> indexAssinatureProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'indexAssinature');
+    });
+  }
+
+  QueryBuilder<DictSenseLink, int, QQueryOperations> lexicalSenseIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lexicalSenseId');
     });
   }
 }
@@ -2094,18 +2903,13 @@ const ShoreshSchema = Schema(
   name: r'Shoresh',
   id: -4635695575484860914,
   properties: {
-    r'radicalCount': PropertySchema(
-      id: 0,
-      name: r'radicalCount',
-      type: IsarType.long,
-    ),
     r'root': PropertySchema(
-      id: 1,
+      id: 0,
       name: r'root',
       type: IsarType.string,
     ),
     r'weak': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'weak',
       type: IsarType.bool,
     )
@@ -2132,9 +2936,8 @@ void _shoreshSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.radicalCount);
-  writer.writeString(offsets[1], object.root);
-  writer.writeBool(offsets[2], object.weak);
+  writer.writeString(offsets[0], object.root);
+  writer.writeBool(offsets[1], object.weak);
 }
 
 Shoresh _shoreshDeserialize(
@@ -2144,9 +2947,8 @@ Shoresh _shoreshDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Shoresh();
-  object.radicalCount = reader.readLong(offsets[0]);
-  object.root = reader.readString(offsets[1]);
-  object.weak = reader.readBool(offsets[2]);
+  object.root = reader.readString(offsets[0]);
+  object.weak = reader.readBool(offsets[1]);
   return object;
 }
 
@@ -2158,10 +2960,8 @@ P _shoreshDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLong(offset)) as P;
-    case 1:
       return (reader.readString(offset)) as P;
-    case 2:
+    case 1:
       return (reader.readBool(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2170,59 +2970,6 @@ P _shoreshDeserializeProp<P>(
 
 extension ShoreshQueryFilter
     on QueryBuilder<Shoresh, Shoresh, QFilterCondition> {
-  QueryBuilder<Shoresh, Shoresh, QAfterFilterCondition> radicalCountEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'radicalCount',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Shoresh, Shoresh, QAfterFilterCondition> radicalCountGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'radicalCount',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Shoresh, Shoresh, QAfterFilterCondition> radicalCountLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'radicalCount',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Shoresh, Shoresh, QAfterFilterCondition> radicalCountBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'radicalCount',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
   QueryBuilder<Shoresh, Shoresh, QAfterFilterCondition> rootEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -2380,23 +3127,11 @@ const LexicalTraitsSchema = Schema(
       type: IsarType.string,
       enumMap: _LexicalTraitsgrammaticalStateEnumValueMap,
     ),
-    r'origin': PropertySchema(
-      id: 1,
-      name: r'origin',
-      type: IsarType.string,
-      enumMap: _LexicalTraitsoriginEnumValueMap,
-    ),
     r'shoresh': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'shoresh',
       type: IsarType.object,
       target: r'Shoresh',
-    ),
-    r'stage': PropertySchema(
-      id: 3,
-      name: r'stage',
-      type: IsarType.string,
-      enumMap: _LexicalTraitsstageEnumValueMap,
     )
   },
   estimateSize: _lexicalTraitsEstimateSize,
@@ -2417,7 +3152,6 @@ int _lexicalTraitsEstimateSize(
       bytesCount += 3 + value.name.length * 3;
     }
   }
-  bytesCount += 3 + object.origin.name.length * 3;
   {
     final value = object.shoresh;
     if (value != null) {
@@ -2425,7 +3159,6 @@ int _lexicalTraitsEstimateSize(
           ShoreshSchema.estimateSize(value, allOffsets[Shoresh]!, allOffsets);
     }
   }
-  bytesCount += 3 + object.stage.name.length * 3;
   return bytesCount;
 }
 
@@ -2436,14 +3169,12 @@ void _lexicalTraitsSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.grammaticalState?.name);
-  writer.writeString(offsets[1], object.origin.name);
   writer.writeObject<Shoresh>(
-    offsets[2],
+    offsets[1],
     allOffsets,
     ShoreshSchema.serialize,
     object.shoresh,
   );
-  writer.writeString(offsets[3], object.stage.name);
 }
 
 LexicalTraits _lexicalTraitsDeserialize(
@@ -2455,17 +3186,11 @@ LexicalTraits _lexicalTraitsDeserialize(
   final object = LexicalTraits();
   object.grammaticalState = _LexicalTraitsgrammaticalStateValueEnumMap[
       reader.readStringOrNull(offsets[0])];
-  object.origin =
-      _LexicalTraitsoriginValueEnumMap[reader.readStringOrNull(offsets[1])] ??
-          Origin.native;
   object.shoresh = reader.readObjectOrNull<Shoresh>(
-    offsets[2],
+    offsets[1],
     ShoreshSchema.deserialize,
     allOffsets,
   );
-  object.stage =
-      _LexicalTraitsstageValueEnumMap[reader.readStringOrNull(offsets[3])] ??
-          Stage.biblical;
   return object;
 }
 
@@ -2480,19 +3205,11 @@ P _lexicalTraitsDeserializeProp<P>(
       return (_LexicalTraitsgrammaticalStateValueEnumMap[
           reader.readStringOrNull(offset)]) as P;
     case 1:
-      return (_LexicalTraitsoriginValueEnumMap[
-              reader.readStringOrNull(offset)] ??
-          Origin.native) as P;
-    case 2:
       return (reader.readObjectOrNull<Shoresh>(
         offset,
         ShoreshSchema.deserialize,
         allOffsets,
       )) as P;
-    case 3:
-      return (_LexicalTraitsstageValueEnumMap[
-              reader.readStringOrNull(offset)] ??
-          Stage.biblical) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -2507,28 +3224,6 @@ const _LexicalTraitsgrammaticalStateValueEnumMap = {
   r'absolute': GrammaticalState.absolute,
   r'construct': GrammaticalState.construct,
   r'suffixState': GrammaticalState.suffixState,
-};
-const _LexicalTraitsoriginEnumValueMap = {
-  r'native': r'native',
-  r'aramaic': r'aramaic',
-  r'modern': r'modern',
-};
-const _LexicalTraitsoriginValueEnumMap = {
-  r'native': Origin.native,
-  r'aramaic': Origin.aramaic,
-  r'modern': Origin.modern,
-};
-const _LexicalTraitsstageEnumValueMap = {
-  r'biblical': r'biblical',
-  r'mishnaic': r'mishnaic',
-  r'medieval': r'medieval',
-  r'modern': r'modern',
-};
-const _LexicalTraitsstageValueEnumMap = {
-  r'biblical': Stage.biblical,
-  r'mishnaic': Stage.mishnaic,
-  r'medieval': Stage.medieval,
-  r'modern': Stage.modern,
 };
 
 extension LexicalTraitsQueryFilter
@@ -2688,142 +3383,6 @@ extension LexicalTraitsQueryFilter
   }
 
   QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      originEqualTo(
-    Origin value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'origin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      originGreaterThan(
-    Origin value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'origin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      originLessThan(
-    Origin value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'origin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      originBetween(
-    Origin lower,
-    Origin upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'origin',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      originStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'origin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      originEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'origin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      originContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'origin',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      originMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'origin',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      originIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'origin',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      originIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'origin',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
       shoreshIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2840,142 +3399,6 @@ extension LexicalTraitsQueryFilter
       ));
     });
   }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      stageEqualTo(
-    Stage value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'stage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      stageGreaterThan(
-    Stage value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'stage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      stageLessThan(
-    Stage value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'stage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      stageBetween(
-    Stage lower,
-    Stage upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'stage',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      stageStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'stage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      stageEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'stage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      stageContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'stage',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      stageMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'stage',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      stageIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'stage',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<LexicalTraits, LexicalTraits, QAfterFilterCondition>
-      stageIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'stage',
-        value: '',
-      ));
-    });
-  }
 }
 
 extension LexicalTraitsQueryObject
@@ -2984,6 +3407,312 @@ extension LexicalTraitsQueryObject
       FilterQuery<Shoresh> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'shoresh');
+    });
+  }
+}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const AssinaturesSchema = Schema(
+  name: r'Assinatures',
+  id: -5869116717377515340,
+  properties: {
+    r'abstractLexicalTraits': PropertySchema(
+      id: 0,
+      name: r'abstractLexicalTraits',
+      type: IsarType.object,
+      target: r'LexicalTraits',
+    ),
+    r'categoricalTraits': PropertySchema(
+      id: 1,
+      name: r'categoricalTraits',
+      type: IsarType.byteList,
+    ),
+    r'internalMorphologicalTraits': PropertySchema(
+      id: 2,
+      name: r'internalMorphologicalTraits',
+      type: IsarType.object,
+      target: r'MorphologicalTraits',
+    )
+  },
+  estimateSize: _assinaturesEstimateSize,
+  serialize: _assinaturesSerialize,
+  deserialize: _assinaturesDeserialize,
+  deserializeProp: _assinaturesDeserializeProp,
+);
+
+int _assinaturesEstimateSize(
+  Assinatures object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 +
+      LexicalTraitsSchema.estimateSize(
+          object.abstractLexicalTraits, allOffsets[LexicalTraits]!, allOffsets);
+  bytesCount += 3 + object.categoricalTraits.length;
+  {
+    final value = object.internalMorphologicalTraits;
+    if (value != null) {
+      bytesCount += 3 +
+          MorphologicalTraitsSchema.estimateSize(
+              value, allOffsets[MorphologicalTraits]!, allOffsets);
+    }
+  }
+  return bytesCount;
+}
+
+void _assinaturesSerialize(
+  Assinatures object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeObject<LexicalTraits>(
+    offsets[0],
+    allOffsets,
+    LexicalTraitsSchema.serialize,
+    object.abstractLexicalTraits,
+  );
+  writer.writeByteList(offsets[1], object.categoricalTraits);
+  writer.writeObject<MorphologicalTraits>(
+    offsets[2],
+    allOffsets,
+    MorphologicalTraitsSchema.serialize,
+    object.internalMorphologicalTraits,
+  );
+}
+
+Assinatures _assinaturesDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = Assinatures();
+  object.abstractLexicalTraits = reader.readObjectOrNull<LexicalTraits>(
+        offsets[0],
+        LexicalTraitsSchema.deserialize,
+        allOffsets,
+      ) ??
+      LexicalTraits();
+  object.categoricalTraits = reader.readByteList(offsets[1]) ?? [];
+  object.internalMorphologicalTraits =
+      reader.readObjectOrNull<MorphologicalTraits>(
+    offsets[2],
+    MorphologicalTraitsSchema.deserialize,
+    allOffsets,
+  );
+  return object;
+}
+
+P _assinaturesDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readObjectOrNull<LexicalTraits>(
+            offset,
+            LexicalTraitsSchema.deserialize,
+            allOffsets,
+          ) ??
+          LexicalTraits()) as P;
+    case 1:
+      return (reader.readByteList(offset) ?? []) as P;
+    case 2:
+      return (reader.readObjectOrNull<MorphologicalTraits>(
+        offset,
+        MorphologicalTraitsSchema.deserialize,
+        allOffsets,
+      )) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension AssinaturesQueryFilter
+    on QueryBuilder<Assinatures, Assinatures, QFilterCondition> {
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      categoricalTraitsElementEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'categoricalTraits',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      categoricalTraitsElementGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'categoricalTraits',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      categoricalTraitsElementLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'categoricalTraits',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      categoricalTraitsElementBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'categoricalTraits',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      categoricalTraitsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'categoricalTraits',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      categoricalTraitsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'categoricalTraits',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      categoricalTraitsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'categoricalTraits',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      categoricalTraitsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'categoricalTraits',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      categoricalTraitsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'categoricalTraits',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      categoricalTraitsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'categoricalTraits',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      internalMorphologicalTraitsIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'internalMorphologicalTraits',
+      ));
+    });
+  }
+
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      internalMorphologicalTraitsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'internalMorphologicalTraits',
+      ));
+    });
+  }
+}
+
+extension AssinaturesQueryObject
+    on QueryBuilder<Assinatures, Assinatures, QFilterCondition> {
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      abstractLexicalTraits(FilterQuery<LexicalTraits> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'abstractLexicalTraits');
+    });
+  }
+
+  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+      internalMorphologicalTraits(FilterQuery<MorphologicalTraits> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'internalMorphologicalTraits');
     });
   }
 }

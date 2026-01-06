@@ -1,50 +1,31 @@
-import 'package:sefertorah/core/DSL/rules.dart';
-import 'package:sefertorah/core/isar/dictionaries.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:sefertorah/core/models/dictionaries.dart';
+import 'package:sefertorah/core/nlp/dsl.dart';
 
-/// The minimal information for classify an word
-///
-///```dart
-/// final ctx = MorphContext(
-///     cat: Vector3(1, 0, 0), // ref
-///     gender: Gender.masculine,
-///     hasShoresh: false, // pronome ou nome nuclear
-/// );
-/// print(classifier.classify(ctx));
-/// ```
-///
-class MorphContext {
-  final Vector3 cat; // ref, pred, mod
-  final Gender? gender;
-  final Binyan? binyan;
-  final Mishkal? mishkal;
-  final GrammaticalState? state;
-  final bool hasShoresh;
+typedef Condition = bool Function(MorphContext);
+typedef Action = String Function(MorphContext);
 
-  MorphContext({
-    required this.cat,
-    this.gender,
-    this.binyan,
-    required this.hasShoresh,
-    this.mishkal,
-    this.state,
-  });
+RuleBuilder rule() => RuleBuilder();
+
+class Rule {
+  final Condition when;
+  final Action then;
+
+  Rule({required this.when, required this.then});
 }
 
-class MorphClassifier {
-  final List<Rule> rules;
+class RuleBuilder {
+  late Condition _condition;
 
-  MorphClassifier(this.rules);
+  RuleBuilder when(Condition c) {
+    _condition = c;
+    return this;
+  }
 
-  String classify(MorphContext ctx) {
-    for (final r in rules) {
-      if (r.when(ctx)) {
-        return r.then(ctx);
-      }
-    }
-    return 'Undefined';
+  Rule then(Action a) {
+    return Rule(when: _condition, then: a);
   }
 }
+
 
 bool isPronounLike(MorphContext d) {
   return !d.hasShoresh &&

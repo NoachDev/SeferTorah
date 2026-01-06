@@ -1,18 +1,7 @@
 import 'package:isar/isar.dart';
+import 'package:sefertorah/core/models/dictionaries.dart';
 
 part 'dictionaries.g.dart';
-
-enum Binyan { qal, nifal, piel, pual, hifil, hufal, hitpael }
-
-enum Number { plural, singular, dual }
-
-enum Gender { masculine, feminine, neutral }
-
-enum VerbForm { perfect, imperfect, participle, infinitive, imperative }
-
-enum Person { first, second, third }
-
-enum MishkalType { verbal, nominal }
 
 @embedded
 class Mishkal {
@@ -45,31 +34,29 @@ interface class MorphologicalTraits {
   Person? person;
 }
 
-enum Origin { native, aramaic, modern }
-
-enum Stage { biblical, mishnaic, medieval, modern }
-
-enum GrammaticalState { absolute, construct, suffixState }
-
 @embedded
 class Shoresh {
   late String root;
-  late int radicalCount;
+  // late int radicalCount; // == root.length
   late bool weak;
 }
 
 @embedded
 interface class LexicalTraits {
-  @Enumerated(EnumType.name)
-  late Origin origin;
-
-  @Enumerated(EnumType.name)
-  late Stage stage;
 
   Shoresh? shoresh;
 
   @Enumerated(EnumType.name)
   GrammaticalState? grammaticalState;
+}
+
+@embedded
+interface class Assinatures {
+  // late String signatureId;
+
+  late List<byte> categoricalTraits; // is a 3d vector
+  late MorphologicalTraits? internalMorphologicalTraits;
+  late LexicalTraits abstractLexicalTraits;
 }
 
 @collection
@@ -78,11 +65,37 @@ interface class Dict {
 
   late String word;
 
-  late List<byte> categoricalTraits; // is a 3d vector
-  late MorphologicalTraits? internalMorphologicalTraits;
-  late LexicalTraits abstractLexicalTraits;
+  @Enumerated(EnumType.name)
+  late Origin origin;
+
+  @Enumerated(EnumType.name)
+  late Stage stage;
+
+  late List<Assinatures> assinatures;
+
+  Dict({
+    required this.word,
+    required this.origin,
+    required this.stage,
+    required this.assinatures,
+  });
 }
 
+
+@collection
+class DictSenseLink {
+  Id id = Isar.autoIncrement;
+
+  late int dictId;
+  late int indexAssinature;
+  late int lexicalSenseId;
+
+  DictSenseLink({
+    required this.dictId,
+    required this.indexAssinature,
+    required this.lexicalSenseId,
+  });
+}
 
 ///
 /// Structural class (𝑺)

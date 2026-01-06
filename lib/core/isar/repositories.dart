@@ -2,7 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:sefertorah/core/isar/books.dart';
+import 'package:sefertorah/core/isar/dictionaries.dart';
 import 'package:sefertorah/core/isar/isar_setup.dart';
+import 'package:sefertorah/core/isar/lexical_sense.dart';
+import 'package:sefertorah/core/nlp/dsl.dart';
+import 'package:sefertorah/core/nlp/rules.dart';
+import 'package:sefertorah/core/nlp/syntax_builder.dart';
+import 'package:vector_math/vector_math.dart';
 
 final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -46,20 +52,22 @@ mixin class RepositoryOfBooks {
     throw ErrorDescription("Not find the book \$ $isarId in isar");
   }
 
-  Future<List<List<String>>> _tranfromRefs(Book? isarBook, PageData data) async{
+  Future<List<List<String>>> _tranfromRefs(
+    Book? isarBook,
+    PageData data,
+  ) async {
     isarBook ??= await isar.books.get(isarId);
 
     return List.empty();
-
   }
 
   /// Get from isar a page with [index] from book with [name]
   ///
   /// if not found in isar, serach in firebase
-  /// 
+  ///
   /// The Page is a colection ( list of list ) of refrences ( Strings ),
   ///  reference will in end locate a object in dictionary
-  ///  
+  ///
   Future<List<List<String>>?> getPageData(int index) async {
     var isarbook = await _getBook();
 
@@ -142,5 +150,102 @@ mixin class RepositoryOfBooks {
     });
 
     return true;
+  }
+}
+
+class RepositoryOfLexicalSenses {
+  Future<LexicalSense?> getById(int dictId, int index) async {
+    var link = await isar.dictSenseLinks
+        .filter()
+        .dictIdEqualTo(dictId)
+        .and()
+        .indexAssinatureEqualTo(index)
+        .findFirst();
+
+    if (link == null) {
+      // throw ErrorDescription(
+      //   "Not find the LexicalSense link for dictId: $dictId and assinature index: $index",
+      // );
+      return null;
+    }
+
+    return isar.lexicalSenses.get(link.lexicalSenseId);
+  }
+}
+
+class RepositoryOfDictionaries {
+  Future<MorphReading> getMorphReading(
+    Dict dict,
+    int assinatureIndex,
+    double confidence,
+  ) async {
+    var ctx = getMorphContext(dict, assinatureIndex);
+    var morphClass = classifier.classify(ctx);
+    var sense = await RepositoryOfLexicalSenses().getById(
+      dict.id,
+      assinatureIndex,
+    );
+
+    return MorphReading(ctx, morphClass, sense, confidence);
+  }
+
+  MorphContext getMorphContext(Dict dict, int assinatureIndex) {
+    var assinature = dict.assinatures[assinatureIndex];
+
+    var catVector = Vector3(
+      assinature.categoricalTraits[0].toDouble(),
+      assinature.categoricalTraits[1].toDouble(),
+      assinature.categoricalTraits[2].toDouble(),
+    );
+
+    return MorphContext(
+      cat: catVector,
+      gender: assinature.internalMorphologicalTraits?.gender,
+      binyan: assinature.internalMorphologicalTraits?.binyan,
+      hasShoresh: assinature.abstractLexicalTraits.shoresh != null,
+      mishkal: assinature.internalMorphologicalTraits?.mishqal,
+      state: assinature.abstractLexicalTraits.grammaticalState,
+    );
+  }
+
+  List<String> getUrlFromSentence(String sentence) {
+    return sentence
+        .split("\$")
+        .where((part) => part.startsWith("Dict::"))
+        .toList();
+  }
+
+  String hebrewClened(String word) {
+    return word.replaceAll(RegExp(r'[\u0591-\u05C7]'), '');
+  }
+
+  Future<Dict> getDictByUrl(String url) async {
+    var parts = url.split("::");
+
+    if (parts[0] != "Dict") {
+      throw ErrorDescription("Invalid dictionary URL: $url");
+    }
+
+    var word = parts[1];
+    // var assinatureIndex = int.parse(parts[2]);
+
+    var dict = await isar.dicts
+        .filter()
+        .wordEqualTo(hebrewClened(word))
+        .findFirst();
+
+    if (dict == null) {
+      throw ErrorDescription(
+        "Dictionary not found for word: $word - ${hebrewClened(word)}",
+      );
+    }
+
+    // if (assinatureIndex < 0 || assinatureIndex >= dict.assinatures.length) {
+    //   throw ErrorDescription(
+    //     "Assinature index out of range: $assinatureIndex for dict with: $word",
+    //   );
+    // }
+
+    return dict;
   }
 }

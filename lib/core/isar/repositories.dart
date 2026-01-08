@@ -6,7 +6,7 @@ import 'package:sefertorah/core/isar/dictionaries.dart';
 import 'package:sefertorah/core/isar/isar_setup.dart';
 import 'package:sefertorah/core/isar/lexical_sense.dart';
 import 'package:sefertorah/core/nlp/dsl.dart';
-import 'package:sefertorah/core/nlp/rules.dart';
+import 'package:sefertorah/core/nlp/util.dart';
 import 'package:sefertorah/core/nlp/syntax_builder.dart';
 import 'package:vector_math/vector_math.dart';
 
@@ -174,39 +174,40 @@ class RepositoryOfLexicalSenses {
 }
 
 class RepositoryOfDictionaries {
-  Future<MorphReading> getMorphReading(
-    Dict dict,
-    int assinatureIndex,
-    double confidence,
-  ) async {
-    var ctx = getMorphContext(dict, assinatureIndex);
-    var morphClass = classifier.classify(ctx);
-    var sense = await RepositoryOfLexicalSenses().getById(
-      dict.id,
-      assinatureIndex,
-    );
+  // Future<MorphReading> getMorphReading(
+  //   Dict dict,
+  //   int assinatureIndex,
+  //   double confidence,
+  // ) async {
+  //   var ctx = getMorphContext(dict, assinatureIndex);
+  //   var morphClass = classifierProjection.classify(ctx);
+  //   var sense = await RepositoryOfLexicalSenses().getById(
+  //     dict.id,
+  //     assinatureIndex,
+  //   );
 
-    return MorphReading(ctx, morphClass, sense, confidence);
-  }
+  //   return MorphReading(ctx, morphClass, sense, confidence);
+  // }
 
-  MorphContext getMorphContext(Dict dict, int assinatureIndex) {
-    var assinature = dict.assinatures[assinatureIndex];
+  // MorphContext getMorphContext(Dict dict, int assinatureIndex) {
+  //   var assinature = dict.signatures[assinatureIndex];
 
-    var catVector = Vector3(
-      assinature.categoricalTraits[0].toDouble(),
-      assinature.categoricalTraits[1].toDouble(),
-      assinature.categoricalTraits[2].toDouble(),
-    );
+  //   var catVector = Vector3(
+  //     assinature.categoricalTraits[0].toDouble(),
+  //     assinature.categoricalTraits[1].toDouble(),
+  //     assinature.categoricalTraits[2].toDouble(),
+  //   );
 
-    return MorphContext(
-      cat: catVector,
-      gender: assinature.internalMorphologicalTraits?.gender,
-      binyan: assinature.internalMorphologicalTraits?.binyan,
-      hasShoresh: assinature.abstractLexicalTraits.shoresh != null,
-      mishkal: assinature.internalMorphologicalTraits?.mishqal,
-      state: assinature.abstractLexicalTraits.grammaticalState,
-    );
-  }
+  //   return MorphContext(
+  //     cat: catVector,
+  //     gender: assinature.internalMorphologicalTraits?.gender,
+  //     binyan: assinature.internalMorphologicalTraits?.binyan,
+  //     hasShoresh: assinature.abstractLexicalTraits.shoresh != null,
+  //     mishkal: assinature.internalMorphologicalTraits?.mishqal,
+  //     state: assinature.abstractLexicalTraits.grammaticalState,
+  //     form: assinature.internalMorphologicalTraits?.form,
+  //   );
+  // }
 
   List<String> getUrlFromSentence(String sentence) {
     return sentence

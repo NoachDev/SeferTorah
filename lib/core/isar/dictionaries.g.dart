@@ -17,17 +17,17 @@ const DictSchema = CollectionSchema(
   name: r'Dict',
   id: 987444509729091105,
   properties: {
-    r'assinatures': PropertySchema(
-      id: 0,
-      name: r'assinatures',
-      type: IsarType.objectList,
-      target: r'Assinatures',
-    ),
     r'origin': PropertySchema(
-      id: 1,
+      id: 0,
       name: r'origin',
       type: IsarType.string,
       enumMap: _DictoriginEnumValueMap,
+    ),
+    r'signatures': PropertySchema(
+      id: 1,
+      name: r'signatures',
+      type: IsarType.objectList,
+      target: r'Signature',
     ),
     r'stage': PropertySchema(
       id: 2,
@@ -49,7 +49,7 @@ const DictSchema = CollectionSchema(
   indexes: {},
   links: {},
   embeddedSchemas: {
-    r'Assinatures': AssinaturesSchema,
+    r'Signature': SignatureSchema,
     r'MorphologicalTraits': MorphologicalTraitsSchema,
     r'Mishkal': MishkalSchema,
     r'LexicalTraits': LexicalTraitsSchema,
@@ -67,15 +67,15 @@ int _dictEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.assinatures.length * 3;
+  bytesCount += 3 + object.origin.name.length * 3;
+  bytesCount += 3 + object.signatures.length * 3;
   {
-    final offsets = allOffsets[Assinatures]!;
-    for (var i = 0; i < object.assinatures.length; i++) {
-      final value = object.assinatures[i];
-      bytesCount += AssinaturesSchema.estimateSize(value, offsets, allOffsets);
+    final offsets = allOffsets[Signature]!;
+    for (var i = 0; i < object.signatures.length; i++) {
+      final value = object.signatures[i];
+      bytesCount += SignatureSchema.estimateSize(value, offsets, allOffsets);
     }
   }
-  bytesCount += 3 + object.origin.name.length * 3;
   bytesCount += 3 + object.stage.name.length * 3;
   bytesCount += 3 + object.word.length * 3;
   return bytesCount;
@@ -87,13 +87,13 @@ void _dictSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeObjectList<Assinatures>(
-    offsets[0],
+  writer.writeString(offsets[0], object.origin.name);
+  writer.writeObjectList<Signature>(
+    offsets[1],
     allOffsets,
-    AssinaturesSchema.serialize,
-    object.assinatures,
+    SignatureSchema.serialize,
+    object.signatures,
   );
-  writer.writeString(offsets[1], object.origin.name);
   writer.writeString(offsets[2], object.stage.name);
   writer.writeString(offsets[3], object.word);
 }
@@ -105,15 +105,15 @@ Dict _dictDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Dict(
-    assinatures: reader.readObjectList<Assinatures>(
-          offsets[0],
-          AssinaturesSchema.deserialize,
+    origin: _DictoriginValueEnumMap[reader.readStringOrNull(offsets[0])] ??
+        Origin.native,
+    signatures: reader.readObjectList<Signature>(
+          offsets[1],
+          SignatureSchema.deserialize,
           allOffsets,
-          Assinatures(),
+          Signature(),
         ) ??
         [],
-    origin: _DictoriginValueEnumMap[reader.readStringOrNull(offsets[1])] ??
-        Origin.native,
     stage: _DictstageValueEnumMap[reader.readStringOrNull(offsets[2])] ??
         Stage.biblical,
     word: reader.readString(offsets[3]),
@@ -130,16 +130,16 @@ P _dictDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readObjectList<Assinatures>(
-            offset,
-            AssinaturesSchema.deserialize,
-            allOffsets,
-            Assinatures(),
-          ) ??
-          []) as P;
-    case 1:
       return (_DictoriginValueEnumMap[reader.readStringOrNull(offset)] ??
           Origin.native) as P;
+    case 1:
+      return (reader.readObjectList<Signature>(
+            offset,
+            SignatureSchema.deserialize,
+            allOffsets,
+            Signature(),
+          ) ??
+          []) as P;
     case 2:
       return (_DictstageValueEnumMap[reader.readStringOrNull(offset)] ??
           Stage.biblical) as P;
@@ -261,90 +261,6 @@ extension DictQueryWhere on QueryBuilder<Dict, Dict, QWhereClause> {
 }
 
 extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
-  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'assinatures',
-        length,
-        true,
-        length,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'assinatures',
-        0,
-        true,
-        0,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'assinatures',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'assinatures',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'assinatures',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'assinatures',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
-    });
-  }
-
   QueryBuilder<Dict, Dict, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -522,6 +438,90 @@ extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
         property: r'origin',
         value: '',
       ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> signaturesLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'signatures',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> signaturesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'signatures',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> signaturesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'signatures',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> signaturesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'signatures',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> signaturesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'signatures',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> signaturesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'signatures',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 
@@ -783,10 +783,10 @@ extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
 }
 
 extension DictQueryObject on QueryBuilder<Dict, Dict, QFilterCondition> {
-  QueryBuilder<Dict, Dict, QAfterFilterCondition> assinaturesElement(
-      FilterQuery<Assinatures> q) {
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> signaturesElement(
+      FilterQuery<Signature> q) {
     return QueryBuilder.apply(this, (query) {
-      return query.object(q, r'assinatures');
+      return query.object(q, r'signatures');
     });
   }
 }
@@ -911,16 +911,15 @@ extension DictQueryProperty on QueryBuilder<Dict, Dict, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Dict, List<Assinatures>, QQueryOperations>
-      assinaturesProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'assinatures');
-    });
-  }
-
   QueryBuilder<Dict, Origin, QQueryOperations> originProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'origin');
+    });
+  }
+
+  QueryBuilder<Dict, List<Signature>, QQueryOperations> signaturesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'signatures');
     });
   }
 
@@ -1872,32 +1871,38 @@ const MorphologicalTraitsSchema = Schema(
       type: IsarType.string,
       enumMap: _MorphologicalTraitsbinyanEnumValueMap,
     ),
-    r'gender': PropertySchema(
+    r'form': PropertySchema(
       id: 1,
+      name: r'form',
+      type: IsarType.string,
+      enumMap: _MorphologicalTraitsformEnumValueMap,
+    ),
+    r'gender': PropertySchema(
+      id: 2,
       name: r'gender',
       type: IsarType.string,
       enumMap: _MorphologicalTraitsgenderEnumValueMap,
     ),
     r'mishqal': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'mishqal',
       type: IsarType.object,
       target: r'Mishkal',
     ),
     r'number': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'number',
       type: IsarType.string,
       enumMap: _MorphologicalTraitsnumberEnumValueMap,
     ),
     r'person': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'person',
       type: IsarType.string,
       enumMap: _MorphologicalTraitspersonEnumValueMap,
     ),
     r'tense': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'tense',
       type: IsarType.string,
       enumMap: _MorphologicalTraitstenseEnumValueMap,
@@ -1917,6 +1922,12 @@ int _morphologicalTraitsEstimateSize(
   var bytesCount = offsets.last;
   {
     final value = object.binyan;
+    if (value != null) {
+      bytesCount += 3 + value.name.length * 3;
+    }
+  }
+  {
+    final value = object.form;
     if (value != null) {
       bytesCount += 3 + value.name.length * 3;
     }
@@ -1962,16 +1973,17 @@ void _morphologicalTraitsSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.binyan?.name);
-  writer.writeString(offsets[1], object.gender?.name);
+  writer.writeString(offsets[1], object.form?.name);
+  writer.writeString(offsets[2], object.gender?.name);
   writer.writeObject<Mishkal>(
-    offsets[2],
+    offsets[3],
     allOffsets,
     MishkalSchema.serialize,
     object.mishqal,
   );
-  writer.writeString(offsets[3], object.number?.name);
-  writer.writeString(offsets[4], object.person?.name);
-  writer.writeString(offsets[5], object.tense?.name);
+  writer.writeString(offsets[4], object.number?.name);
+  writer.writeString(offsets[5], object.person?.name);
+  writer.writeString(offsets[6], object.tense?.name);
 }
 
 MorphologicalTraits _morphologicalTraitsDeserialize(
@@ -1983,19 +1995,21 @@ MorphologicalTraits _morphologicalTraitsDeserialize(
   final object = MorphologicalTraits();
   object.binyan = _MorphologicalTraitsbinyanValueEnumMap[
       reader.readStringOrNull(offsets[0])];
+  object.form =
+      _MorphologicalTraitsformValueEnumMap[reader.readStringOrNull(offsets[1])];
   object.gender = _MorphologicalTraitsgenderValueEnumMap[
-      reader.readStringOrNull(offsets[1])];
+      reader.readStringOrNull(offsets[2])];
   object.mishqal = reader.readObjectOrNull<Mishkal>(
-    offsets[2],
+    offsets[3],
     MishkalSchema.deserialize,
     allOffsets,
   );
   object.number = _MorphologicalTraitsnumberValueEnumMap[
-      reader.readStringOrNull(offsets[3])];
-  object.person = _MorphologicalTraitspersonValueEnumMap[
       reader.readStringOrNull(offsets[4])];
-  object.tense = _MorphologicalTraitstenseValueEnumMap[
+  object.person = _MorphologicalTraitspersonValueEnumMap[
       reader.readStringOrNull(offsets[5])];
+  object.tense = _MorphologicalTraitstenseValueEnumMap[
+      reader.readStringOrNull(offsets[6])];
   return object;
 }
 
@@ -2010,21 +2024,24 @@ P _morphologicalTraitsDeserializeProp<P>(
       return (_MorphologicalTraitsbinyanValueEnumMap[
           reader.readStringOrNull(offset)]) as P;
     case 1:
-      return (_MorphologicalTraitsgenderValueEnumMap[
+      return (_MorphologicalTraitsformValueEnumMap[
           reader.readStringOrNull(offset)]) as P;
     case 2:
+      return (_MorphologicalTraitsgenderValueEnumMap[
+          reader.readStringOrNull(offset)]) as P;
+    case 3:
       return (reader.readObjectOrNull<Mishkal>(
         offset,
         MishkalSchema.deserialize,
         allOffsets,
       )) as P;
-    case 3:
+    case 4:
       return (_MorphologicalTraitsnumberValueEnumMap[
           reader.readStringOrNull(offset)]) as P;
-    case 4:
+    case 5:
       return (_MorphologicalTraitspersonValueEnumMap[
           reader.readStringOrNull(offset)]) as P;
-    case 5:
+    case 6:
       return (_MorphologicalTraitstenseValueEnumMap[
           reader.readStringOrNull(offset)]) as P;
     default:
@@ -2049,6 +2066,20 @@ const _MorphologicalTraitsbinyanValueEnumMap = {
   r'hifil': Binyan.hifil,
   r'hufal': Binyan.hufal,
   r'hitpael': Binyan.hitpael,
+};
+const _MorphologicalTraitsformEnumValueMap = {
+  r'perfect': r'perfect',
+  r'imperfect': r'imperfect',
+  r'participle': r'participle',
+  r'infinitive': r'infinitive',
+  r'imperative': r'imperative',
+};
+const _MorphologicalTraitsformValueEnumMap = {
+  r'perfect': VerbForm.perfect,
+  r'imperfect': VerbForm.imperfect,
+  r'participle': VerbForm.participle,
+  r'infinitive': VerbForm.infinitive,
+  r'imperative': VerbForm.imperative,
 };
 const _MorphologicalTraitsgenderEnumValueMap = {
   r'masculine': r'masculine',
@@ -2081,18 +2112,14 @@ const _MorphologicalTraitspersonValueEnumMap = {
   r'third': Person.third,
 };
 const _MorphologicalTraitstenseEnumValueMap = {
-  r'perfect': r'perfect',
-  r'imperfect': r'imperfect',
-  r'participle': r'participle',
-  r'infinitive': r'infinitive',
-  r'imperative': r'imperative',
+  r'past': r'past',
+  r'present': r'present',
+  r'future': r'future',
 };
 const _MorphologicalTraitstenseValueEnumMap = {
-  r'perfect': VerbForm.perfect,
-  r'imperfect': VerbForm.imperfect,
-  r'participle': VerbForm.participle,
-  r'infinitive': VerbForm.infinitive,
-  r'imperative': VerbForm.imperative,
+  r'past': VerbTense.past,
+  r'present': VerbTense.present,
+  r'future': VerbTense.future,
 };
 
 extension MorphologicalTraitsQueryFilter on QueryBuilder<MorphologicalTraits,
@@ -2246,6 +2273,160 @@ extension MorphologicalTraitsQueryFilter on QueryBuilder<MorphologicalTraits,
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'binyan',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
+      formIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'form',
+      ));
+    });
+  }
+
+  QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
+      formIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'form',
+      ));
+    });
+  }
+
+  QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
+      formEqualTo(
+    VerbForm? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'form',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
+      formGreaterThan(
+    VerbForm? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'form',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
+      formLessThan(
+    VerbForm? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'form',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
+      formBetween(
+    VerbForm? lower,
+    VerbForm? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'form',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
+      formStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'form',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
+      formEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'form',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
+      formContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'form',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
+      formMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'form',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
+      formIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'form',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
+      formIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'form',
         value: '',
       ));
     });
@@ -2751,7 +2932,7 @@ extension MorphologicalTraitsQueryFilter on QueryBuilder<MorphologicalTraits,
 
   QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
       tenseEqualTo(
-    VerbForm? value, {
+    VerbTense? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -2765,7 +2946,7 @@ extension MorphologicalTraitsQueryFilter on QueryBuilder<MorphologicalTraits,
 
   QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
       tenseGreaterThan(
-    VerbForm? value, {
+    VerbTense? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -2781,7 +2962,7 @@ extension MorphologicalTraitsQueryFilter on QueryBuilder<MorphologicalTraits,
 
   QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
       tenseLessThan(
-    VerbForm? value, {
+    VerbTense? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -2797,8 +2978,8 @@ extension MorphologicalTraitsQueryFilter on QueryBuilder<MorphologicalTraits,
 
   QueryBuilder<MorphologicalTraits, MorphologicalTraits, QAfterFilterCondition>
       tenseBetween(
-    VerbForm? lower,
-    VerbForm? upper, {
+    VerbTense? lower,
+    VerbTense? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -3414,9 +3595,9 @@ extension LexicalTraitsQueryObject
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
-const AssinaturesSchema = Schema(
-  name: r'Assinatures',
-  id: -5869116717377515340,
+const SignatureSchema = Schema(
+  name: r'Signature',
+  id: 1833548860252757049,
   properties: {
     r'abstractLexicalTraits': PropertySchema(
       id: 0,
@@ -3436,21 +3617,26 @@ const AssinaturesSchema = Schema(
       target: r'MorphologicalTraits',
     )
   },
-  estimateSize: _assinaturesEstimateSize,
-  serialize: _assinaturesSerialize,
-  deserialize: _assinaturesDeserialize,
-  deserializeProp: _assinaturesDeserializeProp,
+  estimateSize: _signatureEstimateSize,
+  serialize: _signatureSerialize,
+  deserialize: _signatureDeserialize,
+  deserializeProp: _signatureDeserializeProp,
 );
 
-int _assinaturesEstimateSize(
-  Assinatures object,
+int _signatureEstimateSize(
+  Signature object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 +
-      LexicalTraitsSchema.estimateSize(
-          object.abstractLexicalTraits, allOffsets[LexicalTraits]!, allOffsets);
+  {
+    final value = object.abstractLexicalTraits;
+    if (value != null) {
+      bytesCount += 3 +
+          LexicalTraitsSchema.estimateSize(
+              value, allOffsets[LexicalTraits]!, allOffsets);
+    }
+  }
   bytesCount += 3 + object.categoricalTraits.length;
   {
     final value = object.internalMorphologicalTraits;
@@ -3463,8 +3649,8 @@ int _assinaturesEstimateSize(
   return bytesCount;
 }
 
-void _assinaturesSerialize(
-  Assinatures object,
+void _signatureSerialize(
+  Signature object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
@@ -3484,19 +3670,18 @@ void _assinaturesSerialize(
   );
 }
 
-Assinatures _assinaturesDeserialize(
+Signature _signatureDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Assinatures();
+  final object = Signature();
   object.abstractLexicalTraits = reader.readObjectOrNull<LexicalTraits>(
-        offsets[0],
-        LexicalTraitsSchema.deserialize,
-        allOffsets,
-      ) ??
-      LexicalTraits();
+    offsets[0],
+    LexicalTraitsSchema.deserialize,
+    allOffsets,
+  );
   object.categoricalTraits = reader.readByteList(offsets[1]) ?? [];
   object.internalMorphologicalTraits =
       reader.readObjectOrNull<MorphologicalTraits>(
@@ -3507,7 +3692,7 @@ Assinatures _assinaturesDeserialize(
   return object;
 }
 
-P _assinaturesDeserializeProp<P>(
+P _signatureDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -3516,11 +3701,10 @@ P _assinaturesDeserializeProp<P>(
   switch (propertyId) {
     case 0:
       return (reader.readObjectOrNull<LexicalTraits>(
-            offset,
-            LexicalTraitsSchema.deserialize,
-            allOffsets,
-          ) ??
-          LexicalTraits()) as P;
+        offset,
+        LexicalTraitsSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 1:
       return (reader.readByteList(offset) ?? []) as P;
     case 2:
@@ -3534,9 +3718,27 @@ P _assinaturesDeserializeProp<P>(
   }
 }
 
-extension AssinaturesQueryFilter
-    on QueryBuilder<Assinatures, Assinatures, QFilterCondition> {
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+extension SignatureQueryFilter
+    on QueryBuilder<Signature, Signature, QFilterCondition> {
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
+      abstractLexicalTraitsIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'abstractLexicalTraits',
+      ));
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
+      abstractLexicalTraitsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'abstractLexicalTraits',
+      ));
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       categoricalTraitsElementEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -3546,7 +3748,7 @@ extension AssinaturesQueryFilter
     });
   }
 
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       categoricalTraitsElementGreaterThan(
     int value, {
     bool include = false,
@@ -3560,7 +3762,7 @@ extension AssinaturesQueryFilter
     });
   }
 
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       categoricalTraitsElementLessThan(
     int value, {
     bool include = false,
@@ -3574,7 +3776,7 @@ extension AssinaturesQueryFilter
     });
   }
 
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       categoricalTraitsElementBetween(
     int lower,
     int upper, {
@@ -3592,7 +3794,7 @@ extension AssinaturesQueryFilter
     });
   }
 
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       categoricalTraitsLengthEqualTo(int length) {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
@@ -3605,7 +3807,7 @@ extension AssinaturesQueryFilter
     });
   }
 
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       categoricalTraitsIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
@@ -3618,7 +3820,7 @@ extension AssinaturesQueryFilter
     });
   }
 
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       categoricalTraitsIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
@@ -3631,7 +3833,7 @@ extension AssinaturesQueryFilter
     });
   }
 
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       categoricalTraitsLengthLessThan(
     int length, {
     bool include = false,
@@ -3647,7 +3849,7 @@ extension AssinaturesQueryFilter
     });
   }
 
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       categoricalTraitsLengthGreaterThan(
     int length, {
     bool include = false,
@@ -3663,7 +3865,7 @@ extension AssinaturesQueryFilter
     });
   }
 
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       categoricalTraitsLengthBetween(
     int lower,
     int upper, {
@@ -3681,7 +3883,7 @@ extension AssinaturesQueryFilter
     });
   }
 
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       internalMorphologicalTraitsIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -3690,7 +3892,7 @@ extension AssinaturesQueryFilter
     });
   }
 
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       internalMorphologicalTraitsIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -3700,16 +3902,16 @@ extension AssinaturesQueryFilter
   }
 }
 
-extension AssinaturesQueryObject
-    on QueryBuilder<Assinatures, Assinatures, QFilterCondition> {
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+extension SignatureQueryObject
+    on QueryBuilder<Signature, Signature, QFilterCondition> {
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       abstractLexicalTraits(FilterQuery<LexicalTraits> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'abstractLexicalTraits');
     });
   }
 
-  QueryBuilder<Assinatures, Assinatures, QAfterFilterCondition>
+  QueryBuilder<Signature, Signature, QAfterFilterCondition>
       internalMorphologicalTraits(FilterQuery<MorphologicalTraits> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, r'internalMorphologicalTraits');

@@ -1,8 +1,9 @@
+import 'package:sefertorah/core/isar/dictionaries.dart';
 import 'package:sefertorah/core/models/dictionaries.dart';
-import 'package:sefertorah/core/nlp/dsl.dart';
+import 'package:sefertorah/core/nlp/util.dart';
 
-typedef Condition = bool Function(MorphContext);
-typedef Action = String Function(MorphContext);
+typedef Condition = bool Function(Signature);
+typedef Action = MorphologicalCategory Function(Signature);
 
 RuleBuilder rule() => RuleBuilder();
 
@@ -26,71 +27,78 @@ class RuleBuilder {
   }
 }
 
-
-bool isPronounLike(MorphContext d) {
-  return !d.hasShoresh &&
-      d.mishkal == null &&
-      !acceptsArticle(d) &&
-      !acceptsConstruct(d);
-}
-
-// Verbs, Particles and prons not accpt articles
-bool acceptsArticle(MorphContext d) {
-  if (d.binyan != null) return false;
-  if (!d.hasShoresh && d.mishkal == null) {
-    return false; // pronomes e partículas
-  }
-  return true;
-}
-
-/// Verify if the GrammaticalState of the word 
-bool acceptsConstruct(MorphContext d) {
-  return d.state == GrammaticalState.construct;
-}
-
-bool acceptsModifier(MorphContext d) {
-  return d.cat.x > 0;
-}
-
-/// A clssification in Protugues
-final classifier = MorphClassifier([
-  // VERBO
-  rule().when((c) => c.cat.y > 0 && c.binyan != null).then((_) => 'Verbo'),
-
-  // PREDICADOR NÃO VERBAL (ex.: יֵשׁ)
+final List<Rule> rules = [
+  // categoricalTraits = [x - 0, y - 1, z - 2 ] = ( ref, pred, mod ) ∈ {0,1}^3
+ 
   rule()
-      .when((c) => c.cat.y > 0 && c.cat.x == 0 && c.binyan == null)
-      .then((_) => 'Predicador'),
-
-  // FORMA HÍBRIDA (particípio etc.)
-  rule()
-      .when((c) => c.cat.x > 0 && c.cat.y > 0 && c.mishkal != null)
-      .then((c) => 'Forma verbal nominalizada ${_genderPt(c.gender)}'),
-
-  // ADJETIVO
-  rule()
-      .when((c) => c.cat.z > 0 && c.mishkal != null && c.hasShoresh && c.binyan == null && !acceptsConstruct(c))
-      .then((c) => "Adjetivo"),
+      .when(
+        (c) =>
+            c.categoricalTraits[1] > 0 &&
+            c.categoricalTraits[0] == 0 &&
+            c.internalMorphologicalTraits?.binyan != null,
+      )
+      .then(
+        (c) => MorphologicalCategory(
+          category: MorphologicalCategories.verb,
+        ),
+      ),
 
   rule()
-      .when((c) => c.cat.x > 0 && isPronounLike(c))
-      .then((c) => 'Pronome ${_genderPt(c.gender)}'),
+      .when(
+        (c) =>
+            c.categoricalTraits[2] > 0 &&
+            c.internalMorphologicalTraits?.mishqal != null &&
+            c.abstractLexicalTraits?.shoresh != null &&
+            c.internalMorphologicalTraits?.binyan == null &&
+            !acceptsConstruct(c),
+      )
+      .then(
+        (c) =>
+            MorphologicalCategory(category: MorphologicalCategories.adjective),
+      ),
 
-  // MODIFICADOR
   rule()
-      .when((c) => c.cat.z > 0 && c.cat.x == 0 && c.cat.y == 0 && c.mishkal == null && !c.hasShoresh)
-      .then((_) => 'Modificador'),
+      .when((c) => c.categoricalTraits[0] > 0 && isPronounLike(c))
+      .then(
+        (c) => MorphologicalCategory(
+          category: MorphologicalCategories.pronoun,
+          decorations: {c.internalMorphologicalTraits?.gender},
+        ),
+      ),
 
-  // SUBSTANTIVO (inclui pronomes por convenção)
   rule()
-      .when((c) => c.cat.x > 0)
-      .then((c) => 'Substantivo ${_genderPt(c.gender)}'),
-  rule()
-      .when((c) => c.cat.x == 0 && c.cat.y == 0 && c.cat.z == 0)
-      .then((_) => 'Partícula gramatical'),
-]);
+      .when((c) => c.categoricalTraits[0] > 0 && isOrdinalLike(c))
+      .then(
+        (c) => MorphologicalCategory(
+          category: MorphologicalCategories.numeral,
+          decorations: {NumeralType.ordinal},
+        ),
+      ),
 
-String _genderPt(Gender? g) {
-  if (g == null) return '';
-  return g == Gender.masculine ? 'Masculino' : 'Feminino';
-}
+  rule()
+      .when((c) => c.categoricalTraits[2] > 0 && isCardinalLike(c))
+      .then(
+        (c) => MorphologicalCategory(
+          category: MorphologicalCategories.numeral,
+          decorations: {NumeralType.cardinal},
+        ),
+      ),
+
+  /// TODO : Need do more rules
+  
+  rule()
+      .when((c) => c.categoricalTraits[0] > 0)
+      .then(
+        (c) => MorphologicalCategory(
+          category: MorphologicalCategories.noun,
+          decorations: {c.internalMorphologicalTraits?.gender},
+        ),
+      ),
+
+  rule()
+      .when((c) => true)
+      .then(
+        (_) =>
+            MorphologicalCategory(category: MorphologicalCategories.particle),
+      ),
+];

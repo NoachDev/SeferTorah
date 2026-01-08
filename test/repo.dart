@@ -11,12 +11,13 @@ class CreateRepo {
   Future<bool> _createDict() async {
     await isar.writeTxn(() async {
       List<Dict> words = [
+        /// Verb
         Dict(
           word: "כתב",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits = [0, 1, 0]
               ..internalMorphologicalTraits = (MorphologicalTraits()
                 ..binyan = Binyan.qal
@@ -28,18 +29,21 @@ class CreateRepo {
                 ..grammaticalState = null),
           ],
         ),
+
+        /// Noun
         Dict(
           word: "משה",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits = [1, 0, 0]
               ..internalMorphologicalTraits = (MorphologicalTraits()
                 ..mishqal = (Mishkal()
                   ..pattern = "קֶטֶל"
                   ..type = MishkalType.nominal)
                 ..gender = Gender.masculine)
+              ..abstractLexicalTraits = null
               ..abstractLexicalTraits = (LexicalTraits()
                 ..grammaticalState = null),
           ],
@@ -48,8 +52,8 @@ class CreateRepo {
           word: "ספר",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits = [1, 0, 0]
               ..internalMorphologicalTraits = (MorphologicalTraits()
                 ..mishqal = (Mishkal()
@@ -60,12 +64,14 @@ class CreateRepo {
                 ..grammaticalState = null),
           ],
         ),
+
+        /// Pronoun
         Dict(
           word: "אשר",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits =
                   [0, 0, 1] // mod / connector
               ..internalMorphologicalTraits = null
@@ -78,13 +84,13 @@ class CreateRepo {
           word: "נתן",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits =
                   [0, 1, 0] // pred
               ..internalMorphologicalTraits = (MorphologicalTraits()
                 ..binyan = Binyan.qal
-                ..tense = VerbForm.participle
+                ..form = VerbForm.participle
                 ..gender = Gender.masculine)
               ..abstractLexicalTraits = (LexicalTraits()
                 ..shoresh = (Shoresh()
@@ -97,8 +103,8 @@ class CreateRepo {
           word: "נשיא",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits =
                   [1, 0, 0] // ref
               ..internalMorphologicalTraits = (MorphologicalTraits()
@@ -114,8 +120,8 @@ class CreateRepo {
           word: "בני",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits =
                   [1, 0, 0] // ref
               ..internalMorphologicalTraits = (MorphologicalTraits()
@@ -132,8 +138,8 @@ class CreateRepo {
           word: "ישראל",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits =
                   [1, 0, 0] // ref
               ..internalMorphologicalTraits = null
@@ -146,8 +152,8 @@ class CreateRepo {
           word: "מדבר",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits =
                   [1, 0, 0] // ref
               ..internalMorphologicalTraits = (MorphologicalTraits()
@@ -164,8 +170,8 @@ class CreateRepo {
           word: "ו",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits =
                   [0, 0, 0] // mod / connector
               ..internalMorphologicalTraits = null
@@ -178,8 +184,8 @@ class CreateRepo {
           word: "ה",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits =
                   [0, 0, 1] // modifier
               ..internalMorphologicalTraits = null
@@ -192,8 +198,8 @@ class CreateRepo {
           word: "ב",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits =
                   [0, 0, 1] // connector
               ..internalMorphologicalTraits = null
@@ -206,8 +212,8 @@ class CreateRepo {
           word: "ל",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits =
                   [0, 0, 1] // connector
               ..internalMorphologicalTraits = null
@@ -216,33 +222,40 @@ class CreateRepo {
                 ..grammaticalState = null),
           ],
         ),
+
+        /// Pronun / Particle
         Dict(
           word: "את",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
-              ..categoricalTraits =
-                  [0, 0, 1] // connector / functional particle
-              ..internalMorphologicalTraits = null
-              ..abstractLexicalTraits = (LexicalTraits()
-                ..shoresh = null
-                ..grammaticalState = null),
+          signatures: [
+            Signature()
+              ..categoricalTraits = [0, 0, 1]
+              ..abstractLexicalTraits = null
+              ..internalMorphologicalTraits = (MorphologicalTraits()
+                ..gender = Gender.neutral),
+            Signature()
+              ..categoricalTraits = [1, 0, 0]
+              ..abstractLexicalTraits = null
+              ..internalMorphologicalTraits = (MorphologicalTraits()
+                ..gender = Gender.feminine
+                ..person = Person.second
+                ..number = Number.singular),
           ],
         ),
         Dict(
           word: "י",
           origin: Origin.native,
           stage: Stage.biblical,
-          assinatures: [
-            Assinatures()
+          signatures: [
+            Signature()
               ..categoricalTraits =
                   [0, 0, 0] // não ref, não pred, não mod
               ..internalMorphologicalTraits = (MorphologicalTraits()
                 ..person = Person.third
                 ..number = Number.singular
                 ..gender = Gender.masculine
-                ..tense = VerbForm
+                ..form = VerbForm
                     .imperfect // ou imperfective
                     )
               ..abstractLexicalTraits = (LexicalTraits()
@@ -250,10 +263,104 @@ class CreateRepo {
                 ..grammaticalState = null),
           ],
         ),
+
+        // Adjetive
+        Dict(
+          word: "גדול",
+          origin: Origin.native,
+          stage: Stage.biblical,
+          signatures: [
+            Signature()
+              ..categoricalTraits = [0, 0, 1]
+              ..abstractLexicalTraits = (LexicalTraits()
+                ..grammaticalState = GrammaticalState.absolute
+                ..shoresh = (Shoresh()
+                  ..root = "גדול"
+                  ..weak = false))
+              ..internalMorphologicalTraits = (MorphologicalTraits()
+                ..mishqal = (Mishkal()
+                  ..pattern = "קֶטֶל"
+                  ..type = MishkalType.nominal)
+                ..gender = Gender.masculine),
+          ],
+        ),
+
+        /// Pronoun
+        Dict(
+          word: "הוא",
+          origin: Origin.native,
+          stage: Stage.biblical,
+          signatures: [
+            Signature()
+              ..categoricalTraits = [1, 0, 0]
+              ..abstractLexicalTraits = null
+              ..internalMorphologicalTraits = (MorphologicalTraits()
+                ..gender = Gender.masculine
+                ..person = Person.third
+                ..number = Number.singular),
+          ],
+        ),
+
+        /// Ordinal
+        Dict(
+          word: "ראשון",
+          origin: Origin.native,
+          stage: Stage.biblical,
+          signatures: [
+            Signature()
+              ..categoricalTraits = [1, 1, 0]
+              ..abstractLexicalTraits = (LexicalTraits()
+                ..shoresh = (Shoresh()
+                  ..root = "ראשון"
+                  ..weak = false)
+                ..grammaticalState = GrammaticalState.absolute)
+              ..internalMorphologicalTraits = (MorphologicalTraits()
+                ..gender = Gender.masculine
+                ..number = Number.singular
+                ..mishqal = (Mishkal()
+                  ..pattern = "קֶטֶל"
+                  ..type = MishkalType.nominal)),
+          ],
+        ),
+
+        /// Numeral (cardinal), pronun, noun
+        Dict(
+          word: "אחד",
+          origin: Origin.native,
+          stage: Stage.biblical,
+          signatures: [
+            Signature()
+              ..categoricalTraits = [0, 0, 1]
+              ..abstractLexicalTraits = (LexicalTraits()..shoresh = (Shoresh()
+                ..root = "אחד"
+                ..weak = false)..grammaticalState = GrammaticalState.absolute)
+              ..internalMorphologicalTraits = (MorphologicalTraits()
+                ..gender = Gender.masculine
+                ..number = Number.singular),
+
+            Signature()
+              ..categoricalTraits = [0, 1, 0]
+              ..abstractLexicalTraits = null
+              ..internalMorphologicalTraits = (MorphologicalTraits()
+                ..gender = Gender.masculine
+                ..number = Number.singular),
+
+            Signature()
+              ..categoricalTraits = [1, 0, 0]
+              ..abstractLexicalTraits = null
+              ..internalMorphologicalTraits = (MorphologicalTraits()
+                ..gender = Gender.masculine
+                ..number = Number.singular),
+          ],
+        ),
       ];
       dictLenght = words.length;
       await isar.dicts.putAll(words);
     });
+
+    // ref  = introduces / can be a referent (entity, participant)
+    // pred = introduces / can be a predicate (event, property)
+    // mod  = It is structurally dependent on another element (it is not a core element).
 
     return true;
   }
@@ -312,13 +419,14 @@ class CreateRepo {
   Future<void> build() async {
     await initializeIsar();
 
-    print("cleaning Isar ... \n"); 
-    await isar.writeTxn(() async => await isar.clear()); // when needed, to reset the db
+    // print("cleaning Isar ... \n");
+    // await isar.writeTxn(
+    //   () async => await isar.clear(),
+    // ); // when needed, to reset the db
+
+    print("Creating Data ...\n");
 
     await Future.wait([_createDict(), _createLexicalSense()]);
-    await _createLexicalSense();
-
-    print("Creating Links...\n");
     await _createDictSenseLink();
 
     print("Repo is ready. \n");

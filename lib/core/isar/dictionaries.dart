@@ -28,7 +28,10 @@ interface class MorphologicalTraits {
   Gender? gender;
 
   @Enumerated(EnumType.name)
-  VerbForm? tense;
+  VerbForm? form;
+
+  @Enumerated(EnumType.name)
+  VerbTense? tense;
 
   @Enumerated(EnumType.name)
   Person? person;
@@ -51,12 +54,12 @@ interface class LexicalTraits {
 }
 
 @embedded
-interface class Assinatures {
+interface class Signature {
   // late String signatureId;
 
   late List<byte> categoricalTraits; // is a 3d vector
   late MorphologicalTraits? internalMorphologicalTraits;
-  late LexicalTraits abstractLexicalTraits;
+  late LexicalTraits? abstractLexicalTraits;
 }
 
 @collection
@@ -71,13 +74,13 @@ interface class Dict {
   @Enumerated(EnumType.name)
   late Stage stage;
 
-  late List<Assinatures> assinatures;
+  late List<Signature> signatures;
 
   Dict({
     required this.word,
     required this.origin,
     required this.stage,
-    required this.assinatures,
+    required this.signatures,
   });
 }
 

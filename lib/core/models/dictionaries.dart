@@ -36,8 +36,8 @@ enum NumeralType {
   ordinal(br : "Ordinal"),
   cardinal(br : "Cardinal");
 
-
   const NumeralType({this.br});
+
   final String? br;
 }
 
@@ -99,6 +99,6 @@ class MorphologicalCategory {
 
 enum SyntacticRole { predicate, subject, object, modifier, complement }
 
-enum SemanticType { event, entity, property }
-
 /// --------------------------------------------------------------------------------------------
+
+enum SemanticType { event, entity, property }

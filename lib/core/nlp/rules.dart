@@ -94,7 +94,8 @@ final List<Rule> rules = [
           decorations: {c.internalMorphologicalTraits?.gender},
         ),
       ),
-
+  
+  /// TODO : The particles need one rule sophisticated 
   rule()
       .when((c) => true)
       .then(

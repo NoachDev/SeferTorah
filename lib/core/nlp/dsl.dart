@@ -19,13 +19,3 @@ class MorphProjection {
     return MorphologicalCategory.empty();
   }
 }
-
-// class MorphReading {
-//   final MorphContext ctx;
-//   final MorphologicalCategory morphClass;
-//   final LexicalSense? sense;
-//   final double confidence;
-
-//   MorphReading(this.ctx, this.morphClass, this.sense, this.confidence);
-
-// }

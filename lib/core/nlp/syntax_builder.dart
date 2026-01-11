@@ -1,93 +1,120 @@
+import 'package:sefertorah/core/isar/dictionaries.dart';
 import 'package:sefertorah/core/models/dictionaries.dart';
-import 'package:sefertorah/core/nlp/dsl.dart';
+import 'dart:math';
 
-enum RelationKind { head, dependent, modifier }
+enum RelationKind {
+  subject,
+  object,
+  indirectObject,
+  modifier,
+  complement,
+  predicate,
+  connector,
+}
+
+enum SyntacticCategory { nominal, verbal, modifier, connector }
+
+enum ProjectionStrength {
+  strong, // núcleo claro
+  weak, // dependente estrutural
+  hybrid, // ref + pred
+}
+
+enum ArgumentSlot { subject, object, indirectObject, complement }
 
 class SyntacticProjection {
-  final MorphReading reading;
+  final SyntacticCategory category;
 
-  // Capacidades estruturais
-  final bool canHead; // pode ser núcleo de uma frase
-  final bool canTakeArgs; // pode receber dependentes
-  final bool canBeArg; // pode ser argumento
-  final bool canModify; // pode modificar outro nó
-  final bool isFunctional; // partícula / conector
+  final ProjectionStrength strength;
 
-  // Preferências posicionais (viés, não regra)
-  final bool prefersLeft; // tende a se ligar à esquerda
-  final bool prefersRight; // tende a se ligar à direita
+  final bool canProject;
 
-  // Peso inicial (heurístico ou aprendido depois)
+  final bool canModify;
+
+  final bool canPredicate;
+
+  final Set<ArgumentSlot> argumentSlots;
+
+  final bool requiresComplement;
+
   final double prior;
 
+  final Signature source;
+
   SyntacticProjection({
-    required this.reading,
-    required this.canHead,
-    required this.canTakeArgs,
-    required this.canBeArg,
+    required this.category,
+    required this.strength,
+    required this.canProject,
     required this.canModify,
-    required this.isFunctional,
-    required this.prefersLeft,
-    required this.prefersRight,
-    required this.prior,
+    required this.canPredicate,
+    required this.argumentSlots,
+    required this.requiresComplement,
+    required this.source,
+    this.prior = 1,
   });
 
-  factory SyntacticProjection.fromMorphReading(MorphReading reading) {
-    bool determineCanHead(String morphClass) {
-      // Verbos (predicadores) e Substantivos são núcleos de sintagmas (verbal/nominal).
-      // Acessar context.cat[1] (pred) seria uma forma de fazer isso sem depender da string.
-      return morphClass.contains('Verbo') || morphClass.contains('Substantivo');
+  factory SyntacticProjection.create(Signature sign) {
+    final cat = sign.categoricalTraits;
+
+    final bool isRef = cat[0] == 1;
+    final bool isPred = cat[1] == 1;
+    final bool isMod = cat[2] == 1;
+
+    SyntacticCategory category;
+    if (isPred) {
+      category = SyntacticCategory.verbal;
+    } else if (isRef) {
+      category = SyntacticCategory.nominal;
+    } else if (isMod) {
+      category = SyntacticCategory.modifier;
+    } else {
+      category = SyntacticCategory.connector;
     }
 
-    bool determineCanTakeArgs(String morphClass, MorphContext context) {
-      // Verbos podem ter objetos, e substantivos no estado construto exigem um dependente.
-      return morphClass.contains('Verbo') ||
-          context.state == GrammaticalState.construct;
+    ProjectionStrength strength;
+    if (isRef && isPred) {
+      strength = ProjectionStrength.hybrid;
+    } else if (isMod) {
+      strength = ProjectionStrength.weak;
+    } else {
+      strength = ProjectionStrength.strong;
     }
 
-    bool determineCanBeArg(String morphClass) {
-      // Substantivos e Pronomes são os argumentos canônicos de um predicado.
-      return morphClass.contains('Substantivo') ||
-          morphClass.contains('Pronome');
+    final argumentSlots = <ArgumentSlot>{};
+
+    if (isPred) {
+      argumentSlots.add(ArgumentSlot.subject);
+      argumentSlots.add(ArgumentSlot.object);
     }
 
-    bool determineCanModify(String morphClass) {
-      // Adjetivos são os modificadores por excelência.
-      // context.cat[2] (mod) também poderia ser usado aqui.
-      return morphClass.contains('Adjetivo') || morphClass.contains('Advérbio');
-    }
-
-    bool determineIsFunctional(String morphClass) {
-      // Partículas, Conjunções, Preposições e Artigos são funcionais.
-      return morphClass.contains('Partícula') ||
-          morphClass.contains('Conjuncao') ||
-          morphClass.contains('Preposicao') ||
-          morphClass.contains('Artigo');
+    if (sign.abstractLexicalTraits?.grammaticalState ==
+        GrammaticalState.construct) {
+      argumentSlots.add(ArgumentSlot.complement);
     }
 
     return SyntacticProjection(
-      reading: reading,
-      canHead: determineCanHead(reading.morphClass),
-      canTakeArgs: determineCanTakeArgs(reading.morphClass, reading.ctx),
-      canBeArg: determineCanBeArg(reading.morphClass),
-      canModify: determineCanModify(reading.morphClass),
-      isFunctional: determineIsFunctional(reading.morphClass),
-      prefersLeft: false,
-      prefersRight: reading.ctx.state == GrammaticalState.construct,
-      prior: 1,
+      category: category,
+      strength: strength,
+      canProject: isRef || isPred,
+      canModify: isMod,
+      canPredicate: isPred,
+      argumentSlots: argumentSlots,
+      requiresComplement:
+          sign.abstractLexicalTraits?.grammaticalState ==
+          GrammaticalState.construct,
+      source: sign,
     );
-  }
-
-  toString() {
-    return "Projection( canHead: $canHead, canTakeArgs: $canTakeArgs, canBeArg: $canBeArg, canModify: $canModify, isFunctional: $isFunctional, prefersLeft: $prefersLeft, prefersRight: $prefersRight, prior: $prior )";
   }
 }
 
 class SyntaxNode {
-  final int tokenIndex; // posição linear
+  final int tokenIndex;
   final SyntacticProjection projection;
 
   SyntaxNode(this.tokenIndex, this.projection);
+
+  @override
+  String toString() => 'Node($tokenIndex, ${projection.category.name})';
 }
 
 class SyntaxRelation {
@@ -109,14 +136,22 @@ class ParseState {
     required this.score,
   });
 
+  bool hasHead(SyntaxNode node) {
+    return relations.any((r) => r.to == node);
+  }
+
+  bool hasRelation(SyntaxNode head, RelationKind kind) {
+    return relations.any((r) => r.from == head && r.kind == kind);
+  }
+
   ParseState copyWith({
     List<SyntaxNode>? nodes,
     List<SyntaxRelation>? relations,
     double? score,
   }) {
     return ParseState(
-      nodes: nodes ?? this.nodes,
-      relations: relations ?? this.relations,
+      nodes: [...this.nodes, ...nodes ?? []],
+      relations: [...this.relations, ...relations ?? []],
       score: score ?? this.score,
     );
   }
@@ -134,132 +169,146 @@ class ParseState {
 }
 
 class SyntaxToken {
-  final int index; // posição linear
-  // final String surface;
+  final int index;
+  final String surface;
   final List<SyntacticProjection> projections;
 
   SyntaxToken({
     required this.index,
-    // required this.surface,
+    required this.surface,
     required this.projections,
   });
 }
 
 class SyntaxBuilder {
   final int beamWidth;
+  List<ParseState> hypotheses = [];
 
   SyntaxBuilder({this.beamWidth = 5});
 
-  List<ParseState> build(List<SyntaxToken> tokens) {
-    List<ParseState> states = [
-      ParseState(nodes: [], relations: [], score: 0.0),
-    ];
+  /// Create the hypotheses maintaining the ambiguity by sates
+  ///
+  /// for all [SyntaxToken] in [tokens], get the projections in him and create a node from them,
+  /// this nodes will added in all preview sates
+  /// after that, try attach this nodes with others in each state,
+  /// the betters sates will alive, the others cuted by [_prune]
+  ///
+  void build(List<SyntaxToken> tokens) {
+    var currentStates = [ParseState(nodes: [], relations: [], score: 0.0)];
 
     for (final token in tokens) {
-      states = _advance(states, token);
-      states = _prune(states);
-    }
+      final nextStates = <ParseState>[];
 
-    return states;
-  }
+      for (final state in currentStates) {
+        for (final proj in token.projections) {
+          final newNode = SyntaxNode(token.index, proj);
 
-  List<ParseState> _advance(List<ParseState> states, SyntaxToken token) {
-    final List<ParseState> newStates = [];
+          // Base state with new node added
+          final baseState = state.copyWith(nodes: [newNode]);
 
-    for (final state in states) {
-      for (final proj in token.projections) {
-        final node = SyntaxNode(token.index, proj);
+          // Option 0: No attachment (isolated node)
+          nextStates.add(baseState.copyWith(score: baseState.score - 0.1));
 
-        // Opção 1: nó isolado (ainda sem ligação)
-        newStates.add(
-          state.copyWith(
-            nodes: [...state.nodes, node],
-            score: state.score + proj.prior,
-          ),
-        );
+          // Try attaching new node to existing nodes
+          for (final existingNode in state.nodes) {
+            // Direction 1: Existing (Head) -> New (Dependent)
+            _tryAttach(baseState, existingNode, newNode, nextStates);
 
-        // Opção 2: tentar anexar a nós existentes
-        for (final other in state.nodes) {
-          _tryAttach(state, node, other, newStates);
+            // Direction 2: New (Head) -> Existing (Dependent)
+            _tryAttach(baseState, newNode, existingNode, nextStates);
+          }
         }
       }
+      currentStates = _pruneList(nextStates);
     }
 
-    return newStates;
-  }
-
-  bool _hasHead(ParseState state, SyntaxNode node) {
-    return state.relations.any(
-      (r) => r.from == node && r.kind == RelationKind.dependent,
-    );
+    hypotheses = currentStates;
   }
 
   void _tryAttach(
     ParseState state,
-    SyntaxNode node,
-    SyntaxNode other,
-    List<ParseState> out,
+    SyntaxNode head,
+    SyntaxNode dependent,
+    List<ParseState> outStates,
   ) {
-    final proj = node.projection;
-    final otherProj = other.projection;
+    // Tree constraint: a node usually has only one head
+    if (state.hasHead(dependent)) return;
 
-    if (proj.canBeArg && otherProj.canTakeArgs) {
-      out.add(
+    final headProj = head.projection;
+    final depProj = dependent.projection;
+    final distance = (head.tokenIndex - dependent.tokenIndex).abs();
+
+    RelationKind? kind;
+    double scoreBonus = 0.0;
+
+    // 1. Connector
+    if (depProj.category == SyntacticCategory.connector) {
+      kind = RelationKind.connector;
+    }
+
+    // 2. Smikhut (Construct Chain)
+    // Must be adjacent: Head (Construct) -> Dependent (Genitive)
+    if (headProj.requiresComplement &&
+        head.tokenIndex < dependent.tokenIndex &&
+        distance == 1 &&
+        depProj.category == SyntacticCategory.nominal) {
+      kind = RelationKind.complement;
+      scoreBonus += 2.0;
+    }
+    // 3. Predication
+    else if (headProj.canPredicate) {
+      // Subject
+      if (depProj.category == SyntacticCategory.nominal &&
+          headProj.argumentSlots.contains(ArgumentSlot.subject) &&
+          !state.hasRelation(head, RelationKind.subject)) {
+        kind = RelationKind.subject;
+        // VSO preference
+        if (dependent.tokenIndex > head.tokenIndex && distance == 1) {
+          scoreBonus += 1.0;
+        }
+      }
+      // Object
+      else if (depProj.category == SyntacticCategory.nominal &&
+          headProj.argumentSlots.contains(ArgumentSlot.object) &&
+          state.hasRelation(
+            head,
+            RelationKind.subject,
+          ) && // Prefer finding subject first? Not strictly necessary but helps structure
+          !state.hasRelation(head, RelationKind.object)) {
+        kind = RelationKind.object;
+        if (dependent.tokenIndex > head.tokenIndex) scoreBonus += 0.9;
+      }
+    }
+    // 4. Modifiers
+    else if (depProj.canModify && headProj.canProject) {
+      // Hebrew modifiers usually follow head
+      if (head.tokenIndex < dependent.tokenIndex) {
+        kind = RelationKind.modifier;
+        scoreBonus += 1.0 / distance;
+      } else if (head.tokenIndex > dependent.tokenIndex && distance == 1) {
+        // Support for proclitics (Articles, Prepositions, etc) which precede the head
+        kind = RelationKind.modifier;
+        scoreBonus += 2.0; // Strong preference for adjacent prefixes
+      }
+    }
+
+    if (kind != null) {
+      double distancePenalty = log(distance) * 0.1;
+      outStates.add(
         state.copyWith(
-          nodes: [...state.nodes, node],
-          relations: [
-            ...state.relations,
-            SyntaxRelation(from: node, to: other, kind: RelationKind.dependent),
-          ],
-          score: state.score + _scoreAttachment(node, other),
+          relations: [SyntaxRelation(from: head, to: dependent, kind: kind)],
+          score:
+              state.score +
+              headProj.prior +
+              depProj.prior +
+              scoreBonus -
+              distancePenalty,
         ),
       );
     }
-
-    // node (Mod) -> other (Head)
-    if (proj.canModify) {
-      out.add(
-        state.copyWith(
-          nodes: [...state.nodes, node],
-          relations: [
-            ...state.relations,
-            SyntaxRelation(from: node, to: other, kind: RelationKind.modifier),
-          ],
-          score: state.score + _scoreAttachment(node, other),
-        ),
-      );
-    }
-
-    if (otherProj.canBeArg && proj.canTakeArgs && !_hasHead(state, other)) {
-      out.add(
-        state.copyWith(
-          nodes: [...state.nodes, node],
-          relations: [
-            ...state.relations,
-            SyntaxRelation(from: other, to: node, kind: RelationKind.dependent),
-          ],
-          score: state.score + _scoreAttachment(other, node),
-        ),
-      );
-    }
-
   }
 
-  double _scoreAttachment(SyntaxNode a, SyntaxNode b) {
-    double score = 0.0;
-
-    if (a.tokenIndex < b.tokenIndex && a.projection.prefersRight) {
-      score += 0.5;
-    }
-
-    if (a.tokenIndex > b.tokenIndex && a.projection.prefersLeft) {
-      score += 0.5;
-    }
-
-    return score;
-  }
-
-  List<ParseState> _prune(List<ParseState> states) {
+  List<ParseState> _pruneList(List<ParseState> states) {
     states.sort((a, b) => b.score.compareTo(a.score));
     return states.take(beamWidth).toList();
   }

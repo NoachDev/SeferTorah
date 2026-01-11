@@ -419,15 +419,17 @@ class CreateRepo {
   Future<void> build() async {
     await initializeIsar();
 
+    //// when needed, to reset or construct the db
+    
     // print("cleaning Isar ... \n");
     // await isar.writeTxn(
     //   () async => await isar.clear(),
-    // ); // when needed, to reset the db
+    // );
 
-    print("Creating Data ...\n");
+    // print("Creating Data ...\n");
 
-    await Future.wait([_createDict(), _createLexicalSense()]);
-    await _createDictSenseLink();
+    // await Future.wait([_createDict(), _createLexicalSense()]);
+    // await _createDictSenseLink();
 
     print("Repo is ready. \n");
 

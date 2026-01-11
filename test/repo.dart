@@ -173,7 +173,7 @@ class CreateRepo {
           signatures: [
             Signature()
               ..categoricalTraits =
-                  [0, 0, 0] // mod / connector
+                  [0, 0, 1]
               ..internalMorphologicalTraits = null
               ..abstractLexicalTraits = (LexicalTraits()
                 ..shoresh = null
@@ -250,13 +250,13 @@ class CreateRepo {
           signatures: [
             Signature()
               ..categoricalTraits =
-                  [0, 0, 0] // não ref, não pred, não mod
+                  [0, 0, 0]
               ..internalMorphologicalTraits = (MorphologicalTraits()
                 ..person = Person.third
                 ..number = Number.singular
                 ..gender = Gender.masculine
                 ..form = VerbForm
-                    .imperfect // ou imperfective
+                    .imperfect
                     )
               ..abstractLexicalTraits = (LexicalTraits()
                 ..shoresh = null
@@ -392,6 +392,12 @@ class CreateRepo {
         LexicalSense(lemmaPt: "filhos", type: SemanticType.entity),
         LexicalSense(lemmaPt: "israel", type: SemanticType.entity),
         LexicalSense(lemmaPt: "deserto", type: SemanticType.entity),
+        LexicalSense(lemmaPt: "e", type: SemanticType.property),
+        LexicalSense(lemmaPt: "o", type: SemanticType.property),
+        LexicalSense(lemmaPt: "no", type: SemanticType.property),
+        LexicalSense(lemmaPt: "para", type: SemanticType.property),
+        LexicalSense(lemmaPt: "voce", type: SemanticType.entity),
+        LexicalSense(lemmaPt: null, type: SemanticType.grama),
       ];
       senseLenght = senses.length;
       await isar.lexicalSenses.putAll(senses);
@@ -410,7 +416,7 @@ class CreateRepo {
           indexAssinature: 0,
         ),
       );
-      isar.dictSenseLinks.putAll(links);
+      isar.dictSenseLinks.putAll([...links, ]);
     });
 
     return true;
@@ -419,17 +425,17 @@ class CreateRepo {
   Future<void> build() async {
     await initializeIsar();
 
-    //// when needed, to reset or construct the db
+    /// when needed, to reset or construct the db
     
-    // print("cleaning Isar ... \n");
-    // await isar.writeTxn(
-    //   () async => await isar.clear(),
-    // );
+    print("cleaning Isar ... \n");
+    await isar.writeTxn(
+      () async => await isar.clear(),
+    );
 
-    // print("Creating Data ...\n");
+    print("Creating Data ...\n");
 
-    // await Future.wait([_createDict(), _createLexicalSense()]);
-    // await _createDictSenseLink();
+    await Future.wait([_createDict(), _createLexicalSense()]);
+    await _createDictSenseLink();
 
     print("Repo is ready. \n");
 

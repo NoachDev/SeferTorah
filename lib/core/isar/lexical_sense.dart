@@ -8,14 +8,14 @@ class LexicalSense {
   Id id = Isar.autoIncrement;
 
   @Enumerated(EnumType.name)
-  late SemanticType type;
+  final SemanticType type;
   
-  late String lemmaPt;         // escrever
+  String? lemmaPt;         // escrever
   String? lemmaPtCommentary;
 
   LexicalSense({
-    required this.lemmaPt,
     required this.type,
+    this.lemmaPt,
     this.lemmaPtCommentary,
   });
 }

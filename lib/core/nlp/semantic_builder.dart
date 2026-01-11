@@ -8,7 +8,7 @@ typedef SemanticRole = String; // "agent", "theme", "recipient", "location"
 abstract class SemanticNode {
   final int id; // interno do grafo
   final LexicalSense sense;
-  final MorphologicalCategory? morphology; // Vital para tradução (tempo, gênero, número)
+  final MorphologicalCategory? morphology;
 
   SemanticNode(this.id, this.sense, {this.morphology});
 
@@ -29,8 +29,8 @@ class SemanticProperty extends SemanticNode {
 }
 
 class SemanticEdge {
-  final SemanticNode from; // geralmente evento
-  final SemanticNode to;   // entidade ou evento
+  final SemanticNode from; 
+  final SemanticNode to;
   final SemanticRole role;
   final double confidence;
 
@@ -62,63 +62,12 @@ class SemanticGraph {
 }
 
 class SemanticBuilder {
-  final graph = SemanticGraph();
-  final _morphClassifier = MorphProjection();
+  final SemanticGraph graph ;
 
-  void build(ParseState state, List<LexicalSense> senses) {
-    // 1. Construção dos Nós (Nodes)
-    for (final node in state.nodes) {
-      // O LexicalSense vem da lista externa (alinhada por índice)
-      final sense = senses[node.tokenIndex];
-      
-      // A Morfologia vem da projeção sintática escolhida no ParseState
-      // Isso utiliza a DSL (dsl.dart) para classificar a Signature bruta
-      final signature = node.projection.source;
-      final morphology = _morphClassifier.classify(signature);
+  SemanticBuilder(this.graph);
 
-      late SemanticNode semanticNode;
-
-      switch (sense.type){
-        case SemanticType.event : 
-          semanticNode = SemanticEvent(node.tokenIndex, sense, morphology: morphology);
-        case SemanticType.property : 
-          semanticNode = SemanticProperty(node.tokenIndex, sense, morphology: morphology);
-        default : 
-          semanticNode = SemanticEntity(node.tokenIndex, sense, morphology: morphology);
-      }
-      
-      graph.addNode(semanticNode);
-    }
-
-    // 2. Construção das Arestas (Edges) baseada nas Relações Sintáticas
-    for (final rel in state.relations) {
-      // Na sintaxe: From = Head (ex: Verbo), To = Dependent (ex: Sujeito)
-      final headSense = senses[rel.from.tokenIndex];
-      
-      // Filtra apenas relações onde o núcleo é um Evento (Verbo) ou modificadores relevantes
-      if (headSense.type != SemanticType.event && rel.kind != RelationKind.modifier) continue;
-
-      final headId = rel.from.tokenIndex;
-      final depId = rel.to.tokenIndex;
-
-      final role = _inferRole(rel.kind);
-
-      if (role != null) {
-        graph.addEdge(
-          SemanticEdge(
-            from: graph.nodes[headId]!,
-            to: graph.nodes[depId]!,
-            role: role,
-            confidence: 0.8,
-          ),
-        );
-      }
-    }
-    
-    // 3. (Futuro) Tratamento de Elipses / Sujeitos Ocultos aqui
-  }
-
-  SemanticRole? _inferRole(RelationKind kind) {
+  factory SemanticBuilder.build(ParseState state, List<LexicalSense?> senses) {
+    SemanticRole? inferRole(RelationKind kind) {
     switch (kind) {
       case RelationKind.subject:
         return "agent";
@@ -134,4 +83,58 @@ class SemanticBuilder {
         return null;
     }
   }
+
+    final morphClassifier = MorphProjection();
+    final graph = SemanticGraph();
+
+    for (final node in state.nodes) {
+      final sense = senses[node.tokenIndex];
+      
+      final signature = node.projection.source;
+      final morphology = morphClassifier.classify(signature);
+
+      switch (sense?.type){
+        case SemanticType.event : 
+          graph.addNode(  SemanticEvent(node.tokenIndex, sense!, morphology: morphology) );
+        case SemanticType.property : 
+          graph.addNode(  SemanticProperty(node.tokenIndex, sense!, morphology: morphology));
+        case SemanticType.entity : 
+          graph.addNode( SemanticEntity(node.tokenIndex, sense!, morphology: morphology));
+        default : null;
+      }
+      
+    }
+
+    for (final rel in state.relations) {
+      // In the syntax: From = Head (ex: Verb), To = Dependent (ex: Subject)
+      final headSense = senses[rel.from.tokenIndex];
+      
+      // Filters only relationships where the nucleus is an Event (Verb) or relevant modifiers
+      if (headSense!.type != SemanticType.event && rel.kind != RelationKind.modifier) continue;
+
+      final headId = rel.from.tokenIndex;
+      final depId = rel.to.tokenIndex;
+
+      final role = inferRole(rel.kind);
+
+      if (role != null) {
+        graph.addEdge(
+          SemanticEdge(
+            from: graph.nodes[headId]!,
+            to: graph.nodes[depId]!,
+            role: role,
+            confidence: 0.8,
+          ),
+        );
+      }
+    }
+    
+    /// TODO : Treatment of Ellipses / Hidden Subjects here
+    /// 
+    
+    return SemanticBuilder(graph);
+
+  }
+
+  
 }

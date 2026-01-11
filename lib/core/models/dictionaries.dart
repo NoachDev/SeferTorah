@@ -101,4 +101,4 @@ enum SyntacticRole { predicate, subject, object, modifier, complement }
 
 /// --------------------------------------------------------------------------------------------
 
-enum SemanticType { event, entity, property }
+enum SemanticType { event, entity, property, grama }

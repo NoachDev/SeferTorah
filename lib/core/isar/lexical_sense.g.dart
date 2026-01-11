@@ -54,7 +54,12 @@ int _lexicalSenseEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.lemmaPt.length * 3;
+  {
+    final value = object.lemmaPt;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.lemmaPtCommentary;
     if (value != null) {
@@ -83,7 +88,7 @@ LexicalSense _lexicalSenseDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = LexicalSense(
-    lemmaPt: reader.readString(offsets[0]),
+    lemmaPt: reader.readStringOrNull(offsets[0]),
     lemmaPtCommentary: reader.readStringOrNull(offsets[1]),
     type: _LexicalSensetypeValueEnumMap[reader.readStringOrNull(offsets[2])] ??
         SemanticType.event,
@@ -100,7 +105,7 @@ P _lexicalSenseDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
@@ -115,11 +120,13 @@ const _LexicalSensetypeEnumValueMap = {
   r'event': r'event',
   r'entity': r'entity',
   r'property': r'property',
+  r'grama': r'grama',
 };
 const _LexicalSensetypeValueEnumMap = {
   r'event': SemanticType.event,
   r'entity': SemanticType.entity,
   r'property': SemanticType.property,
+  r'grama': SemanticType.grama,
 };
 
 Id _lexicalSenseGetId(LexicalSense object) {
@@ -270,8 +277,26 @@ extension LexicalSenseQueryFilter
   }
 
   QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition>
+      lemmaPtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lemmaPt',
+      ));
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition>
+      lemmaPtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lemmaPt',
+      ));
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition>
       lemmaPtEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -285,7 +310,7 @@ extension LexicalSenseQueryFilter
 
   QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition>
       lemmaPtGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -301,7 +326,7 @@ extension LexicalSenseQueryFilter
 
   QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition>
       lemmaPtLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -317,8 +342,8 @@ extension LexicalSenseQueryFilter
 
   QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition>
       lemmaPtBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -827,7 +852,7 @@ extension LexicalSenseQueryProperty
     });
   }
 
-  QueryBuilder<LexicalSense, String, QQueryOperations> lemmaPtProperty() {
+  QueryBuilder<LexicalSense, String?, QQueryOperations> lemmaPtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lemmaPt');
     });

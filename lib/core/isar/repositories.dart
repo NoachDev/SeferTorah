@@ -6,6 +6,7 @@ import 'package:sefertorah/core/isar/dictionaries.dart';
 import 'package:sefertorah/core/isar/isar_setup.dart';
 import 'package:sefertorah/core/isar/lexical_sense.dart';
 import 'package:sefertorah/core/nlp/dsl.dart';
+import 'package:sefertorah/core/nlp/semantic_builder.dart';
 import 'package:sefertorah/core/nlp/util.dart';
 import 'package:sefertorah/core/nlp/syntax_builder.dart';
 import 'package:vector_math/vector_math.dart';
@@ -153,8 +154,8 @@ mixin class RepositoryOfBooks {
   }
 }
 
-class RepositoryOfLexicalSenses {
-  Future<LexicalSense?> getById(int dictId, int index) async {
+mixin class RepositoryOfLexicalSenses {
+  Future<LexicalSense?> getSenseById(int dictId, int index) async {
     var link = await isar.dictSenseLinks
         .filter()
         .dictIdEqualTo(dictId)
@@ -174,41 +175,6 @@ class RepositoryOfLexicalSenses {
 }
 
 class RepositoryOfDictionaries {
-  // Future<MorphReading> getMorphReading(
-  //   Dict dict,
-  //   int assinatureIndex,
-  //   double confidence,
-  // ) async {
-  //   var ctx = getMorphContext(dict, assinatureIndex);
-  //   var morphClass = classifierProjection.classify(ctx);
-  //   var sense = await RepositoryOfLexicalSenses().getById(
-  //     dict.id,
-  //     assinatureIndex,
-  //   );
-
-  //   return MorphReading(ctx, morphClass, sense, confidence);
-  // }
-
-  // MorphContext getMorphContext(Dict dict, int assinatureIndex) {
-  //   var assinature = dict.signatures[assinatureIndex];
-
-  //   var catVector = Vector3(
-  //     assinature.categoricalTraits[0].toDouble(),
-  //     assinature.categoricalTraits[1].toDouble(),
-  //     assinature.categoricalTraits[2].toDouble(),
-  //   );
-
-  //   return MorphContext(
-  //     cat: catVector,
-  //     gender: assinature.internalMorphologicalTraits?.gender,
-  //     binyan: assinature.internalMorphologicalTraits?.binyan,
-  //     hasShoresh: assinature.abstractLexicalTraits.shoresh != null,
-  //     mishkal: assinature.internalMorphologicalTraits?.mishqal,
-  //     state: assinature.abstractLexicalTraits.grammaticalState,
-  //     form: assinature.internalMorphologicalTraits?.form,
-  //   );
-  // }
-
   List<String> getUrlFromSentence(String sentence) {
     return sentence
         .split("\$")
@@ -248,5 +214,67 @@ class RepositoryOfDictionaries {
     // }
 
     return dict;
+  }
+}
+
+class RepoOfOneVerse extends RepositoryOfDictionaries
+    with RepositoryOfLexicalSenses {
+  final syntaxBuilder = SyntaxBuilder();
+
+  final List<SyntaxToken> tokensSentence = [];
+  final List<SemanticBuilder> semanticGraphs = [];
+
+  final List<int> _dictsId = [];
+
+  bool get buildedSynataxGraph {
+    if (tokensSentence.isNotEmpty) {
+      syntaxBuilder.build(tokensSentence);
+      return true;
+    }
+
+    return false;
+  }
+
+  Future<bool> get buildedSemanticGraph async {
+    if (buildedSynataxGraph) {
+      for (final state in syntaxBuilder.hypotheses) {
+        final senses = <LexicalSense?>[];
+
+        for (final node in state.nodes) {
+          final id = _dictsId[node.tokenIndex];
+          // the index of projection is the same of index of siginature in dict
+          final indexOfSigin = tokensSentence[node.tokenIndex].projections
+              .indexOf(node.projection);
+
+          senses.add(await getSenseById(id, indexOfSigin));
+        }
+
+        
+
+        semanticGraphs.add(SemanticBuilder.build(state, senses));
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  Future<void> buildTokens(String sentence) async {
+    for (var url in getUrlFromSentence(sentence).reversed) {
+      final dict = await getDictByUrl(url);
+      final projections = dict.signatures.map(
+        (sign) => SyntacticProjection.create(sign),
+      );
+
+      tokensSentence.add(
+        SyntaxToken(
+          index: tokensSentence.length,
+          surface: dict.word,
+          projections: projections.toList(),
+        ),
+      );
+
+      _dictsId.add(dict.id);
+    }
   }
 }

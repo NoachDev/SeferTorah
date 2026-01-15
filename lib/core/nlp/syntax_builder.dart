@@ -15,8 +15,8 @@ enum RelationKind {
 enum SyntacticCategory { nominal, verbal, modifier, connector }
 
 enum ProjectionStrength {
-  strong, // núcleo claro
-  weak, // dependente estrutural
+  strong,
+  weak,
   hybrid, // ref + pred
 }
 
@@ -123,6 +123,16 @@ class SyntaxRelation {
   final RelationKind kind;
 
   SyntaxRelation({required this.from, required this.to, required this.kind});
+
+  @override
+  String toString() {
+    return '${from.tokenIndex} --${kind.name}--> ${to.tokenIndex}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return super.toString() == other.toString();
+  }
 }
 
 class ParseState {
@@ -141,7 +151,39 @@ class ParseState {
   }
 
   bool hasRelation(SyntaxNode head, RelationKind kind) {
-    return relations.any((r) => r.from == head && r.kind == kind);
+    return relations.any((r) => r.to == head && r.kind == kind);
+  }
+
+  List<SyntaxRelation> previousByRelations(dynamic target) {
+    List<SyntaxRelation> ret = relations
+        .where(
+          (elm) =>
+              elm.to.tokenIndex == target.tokenIndex &&
+              elm.from.tokenIndex < target.tokenIndex,
+        )
+        .toList();
+
+    List<SyntaxRelation> newNodes = [];
+
+    for (final i in ret) {
+      newNodes.addAll(previousByRelations(i.from));
+    }
+
+    return [...ret, ...newNodes];
+  }
+
+  List<SyntaxRelation> afterByRelations(dynamic target) {
+    List<SyntaxRelation> ret = relations
+        .where((elm) => elm.to.tokenIndex == target.tokenIndex)
+        .toList();
+
+    List<SyntaxRelation> newNodes = [];
+
+    for (final i in ret) {
+      newNodes.addAll(afterByRelations(i.from));
+    }
+
+    return [...ret, ...newNodes];
   }
 
   ParseState copyWith({
@@ -209,30 +251,45 @@ class SyntaxBuilder {
           // Option 0: No attachment (isolated node)
           nextStates.add(baseState.copyWith(score: baseState.score - 0.1));
 
+          final possibleAttachments = <ParseState>[];
+
           // Try attaching new node to existing nodes
           for (final existingNode in state.nodes) {
             // Direction 1: Existing (Head) -> New (Dependent)
-            _tryAttach(baseState, existingNode, newNode, nextStates);
+            _tryAttachToBack(
+              possibleAttachments.lastOrNull ?? baseState,
+              existingNode,
+              newNode,
+              possibleAttachments,
+            );
 
             // Direction 2: New (Head) -> Existing (Dependent)
-            _tryAttach(baseState, newNode, existingNode, nextStates);
+            _tryAttachFrom(
+              possibleAttachments.lastOrNull ?? baseState,
+              newNode,
+              existingNode,
+              possibleAttachments,
+            );
           }
+
+          nextStates.addAll(possibleAttachments);
         }
       }
+
       currentStates = _pruneList(nextStates);
     }
 
     hypotheses = currentStates;
   }
 
-  void _tryAttach(
+  void _tryAttachToBack(
     ParseState state,
     SyntaxNode head,
     SyntaxNode dependent,
     List<ParseState> outStates,
   ) {
     // Tree constraint: a node usually has only one head
-    if (state.hasHead(dependent)) return;
+    // if (state.hasHead(dependent)) return;
 
     final headProj = head.projection;
     final depProj = dependent.projection;
@@ -242,54 +299,83 @@ class SyntaxBuilder {
     double scoreBonus = 0.0;
 
     // 1. Connector
-    if (depProj.category == SyntacticCategory.connector) {
+    if (headProj.category == SyntacticCategory.connector && distance == 1) {
       kind = RelationKind.connector;
+      scoreBonus += 1;
+    }
+    // 2. Modifiers
+    else if (headProj.canModify && depProj.canProject && distance == 1) {
+      kind = RelationKind.modifier;
+      scoreBonus += 1.0 / distance;
+    } else if (headProj.canModify &&
+        depProj.category == SyntacticCategory.connector &&
+        distance == 1) {
+      kind = RelationKind.modifier;
+      scoreBonus += 2;
     }
 
-    // 2. Smikhut (Construct Chain)
-    // Must be adjacent: Head (Construct) -> Dependent (Genitive)
-    if (headProj.requiresComplement &&
-        head.tokenIndex < dependent.tokenIndex &&
-        distance == 1 &&
-        depProj.category == SyntacticCategory.nominal) {
-      kind = RelationKind.complement;
-      scoreBonus += 2.0;
+    if (kind != null) {
+      double distancePenalty = log(distance) * 0.1;
+      outStates.add(
+        state.copyWith(
+          relations: [SyntaxRelation(from: head, to: dependent, kind: kind)],
+          score:
+              state.score +
+              headProj.prior +
+              depProj.prior +
+              scoreBonus -
+              distancePenalty,
+        ),
+      );
     }
-    // 3. Predication
-    else if (headProj.canPredicate) {
+  }
+
+  void _tryAttachFrom(
+    ParseState state,
+    SyntaxNode head,
+    SyntaxNode dependent,
+    List<ParseState> outStates,
+  ) {
+    final headProj = head.projection;
+    final depProj = dependent.projection;
+    final distance = (head.tokenIndex - dependent.tokenIndex).abs();
+
+    RelationKind? kind;
+    double scoreBonus = 0.0;
+
+    // 1. Predicates
+    if (depProj.canPredicate) {
       // Subject
-      if (depProj.category == SyntacticCategory.nominal &&
-          headProj.argumentSlots.contains(ArgumentSlot.subject) &&
-          !state.hasRelation(head, RelationKind.subject)) {
+      if (headProj.category == SyntacticCategory.nominal &&
+          depProj.argumentSlots.contains(ArgumentSlot.subject) &&
+          !state.hasRelation(dependent, RelationKind.subject)) {
         kind = RelationKind.subject;
         // VSO preference
-        if (dependent.tokenIndex > head.tokenIndex && distance == 1) {
-          scoreBonus += 1.0;
-        }
+        scoreBonus += 1.0;
+        // if (dependent.tokenIndex > head.tokenIndex && distance == 1) {}
       }
       // Object
-      else if (depProj.category == SyntacticCategory.nominal &&
-          headProj.argumentSlots.contains(ArgumentSlot.object) &&
+      else if (headProj.category == SyntacticCategory.nominal &&
+          depProj.argumentSlots.contains(ArgumentSlot.object) &&
           state.hasRelation(
-            head,
+            dependent,
             RelationKind.subject,
           ) && // Prefer finding subject first? Not strictly necessary but helps structure
-          !state.hasRelation(head, RelationKind.object)) {
+          !state.hasRelation(dependent, RelationKind.object)) {
         kind = RelationKind.object;
-        if (dependent.tokenIndex > head.tokenIndex) scoreBonus += 0.9;
+        scoreBonus += 0.5;
       }
     }
-    // 4. Modifiers
-    else if (depProj.canModify && headProj.canProject) {
-      // Hebrew modifiers usually follow head
-      if (head.tokenIndex < dependent.tokenIndex) {
-        kind = RelationKind.modifier;
-        scoreBonus += 1.0 / distance;
-      } else if (head.tokenIndex > dependent.tokenIndex && distance == 1) {
-        // Support for proclitics (Articles, Prepositions, etc) which precede the head
-        kind = RelationKind.modifier;
-        scoreBonus += 2.0; // Strong preference for adjacent prefixes
-      }
+    // 2. Smikhut (Construct Chain)
+    // Must be adjacent: Head (Construct) -> Dependent (Genitive
+    else if (depProj.requiresComplement &&
+        head.tokenIndex > dependent.tokenIndex &&
+        // distance == 1 &&
+        depProj.category == SyntacticCategory.nominal &&
+        headProj.category != SyntacticCategory.modifier &&
+        headProj.category != SyntacticCategory.connector) {
+      kind = RelationKind.complement;
+      scoreBonus += 2.0;
     }
 
     if (kind != null) {
@@ -311,5 +397,6 @@ class SyntaxBuilder {
   List<ParseState> _pruneList(List<ParseState> states) {
     states.sort((a, b) => b.score.compareTo(a.score));
     return states.take(beamWidth).toList();
+    // return states;
   }
 }

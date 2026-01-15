@@ -251,7 +251,7 @@ class RepoOfOneVerse extends RepositoryOfDictionaries
 
         
 
-        semanticGraphs.add(SemanticBuilder.build(state, senses));
+        semanticGraphs.add(SemanticBuilder(state, senses));
       }
       return true;
     }

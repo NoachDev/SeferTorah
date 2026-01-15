@@ -63,7 +63,7 @@ interface class Signature {
 }
 
 @collection
-interface class Dict {
+class Dict {
   Id id = Isar.autoIncrement;
 
   late String word;

@@ -1,4 +1,3 @@
-import 'package:isar/isar.dart';
 import 'package:sefertorah/core/isar/isar_setup.dart';
 import 'package:sefertorah/core/isar/dictionaries.dart';
 import 'package:sefertorah/core/isar/lexical_sense.dart';
@@ -142,7 +141,13 @@ class CreateRepo {
             Signature()
               ..categoricalTraits =
                   [1, 0, 0] // ref
-              ..internalMorphologicalTraits = null
+              ..internalMorphologicalTraits = (MorphologicalTraits()
+              ..gender = Gender.masculine
+              ..number = Number.singular
+              ..mishqal = (Mishkal()
+                  ..pattern = "קֶטֶל"
+                  ..type = MishkalType.nominal) 
+              )
               ..abstractLexicalTraits = (LexicalTraits()
                 ..shoresh = null
                 ..grammaticalState = GrammaticalState.absolute),
@@ -230,7 +235,7 @@ class CreateRepo {
           stage: Stage.biblical,
           signatures: [
             Signature()
-              ..categoricalTraits = [0, 0, 1]
+              ..categoricalTraits = [0, 0, 0]
               ..abstractLexicalTraits = null
               ..internalMorphologicalTraits = (MorphologicalTraits()
                 ..gender = Gender.neutral),
@@ -386,8 +391,8 @@ class CreateRepo {
           lemmaPt: "livro",
           type: SemanticType.entity,
         ),
-        LexicalSense(lemmaPt: "que", type: SemanticType.entity),
-        LexicalSense(lemmaPt: "dado", type: SemanticType.event),
+        LexicalSense(lemmaPt: "que", type: SemanticType.property),
+        LexicalSense(lemmaPt: "dar", type: SemanticType.event),
         LexicalSense(lemmaPt: "lider", type: SemanticType.entity),
         LexicalSense(lemmaPt: "filhos", type: SemanticType.entity),
         LexicalSense(lemmaPt: "israel", type: SemanticType.entity),
@@ -396,11 +401,13 @@ class CreateRepo {
         LexicalSense(lemmaPt: "o", type: SemanticType.property),
         LexicalSense(lemmaPt: "no", type: SemanticType.property),
         LexicalSense(lemmaPt: "para", type: SemanticType.property),
-        LexicalSense(lemmaPt: "voce", type: SemanticType.entity),
-        LexicalSense(lemmaPt: null, type: SemanticType.grama),
+        LexicalSense(lemmaPt: null, type: SemanticType.gramma),
+        LexicalSense(lemmaPt: null, type: SemanticType.gramma),
+        LexicalSense(lemmaPt: null, type: SemanticType.gramma),
       ];
       senseLenght = senses.length;
       await isar.lexicalSenses.putAll(senses);
+      await isar.lexicalSenses.put(LexicalSense(lemmaPt: "voce", type: SemanticType.entity));
     });
 
     return true;
@@ -416,7 +423,11 @@ class CreateRepo {
           indexAssinature: 0,
         ),
       );
-      isar.dictSenseLinks.putAll([...links, ]);
+      isar.dictSenseLinks.putAll([...links, DictSenseLink(
+          dictId: 14,
+          lexicalSenseId: 17,
+          indexAssinature: 1,
+        )]);
     });
 
     return true;
@@ -425,7 +436,7 @@ class CreateRepo {
   Future<void> build() async {
     await initializeIsar();
 
-    /// when needed, to reset or construct the db
+    // / when needed, to reset or construct the db
     
     print("cleaning Isar ... \n");
     await isar.writeTxn(

@@ -1,4 +1,4 @@
-enum Origin { native, aramaic, modern }
+enum Origin { native, semitic, modern }
 
 enum Stage { biblical, mishnaic, medieval, modern }
 
@@ -66,7 +66,7 @@ class MorphologicalCategory {
   final MorphologicalCategories category;
   final Set<dynamic>? decorations;
 
-  MorphologicalCategory({required this.category, this.decorations});
+  MorphologicalCategory({required this.category, this.decorations = null});
 
   factory MorphologicalCategory.empty(){
     throw MorphologicalCategory(category: MorphologicalCategories.undefined);
@@ -101,4 +101,4 @@ enum SyntacticRole { predicate, subject, object, modifier, complement }
 
 /// --------------------------------------------------------------------------------------------
 
-enum SemanticType { event, entity, property, grama }
+enum SemanticType { event, entity, property, gramma }

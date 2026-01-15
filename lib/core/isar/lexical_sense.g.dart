@@ -120,13 +120,13 @@ const _LexicalSensetypeEnumValueMap = {
   r'event': r'event',
   r'entity': r'entity',
   r'property': r'property',
-  r'grama': r'grama',
+  r'gramma': r'gramma',
 };
 const _LexicalSensetypeValueEnumMap = {
   r'event': SemanticType.event,
   r'entity': SemanticType.entity,
   r'property': SemanticType.property,
-  r'grama': SemanticType.grama,
+  r'gramma': SemanticType.gramma,
 };
 
 Id _lexicalSenseGetId(LexicalSense object) {

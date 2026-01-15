@@ -57,6 +57,17 @@ void main() {
         expect(classify.decorations?.first, Gender.masculine);
       }
     });
+    
+    test("Test para Subistantivo - ישראל ", () async {
+      final dict = await dictRepo.getDictByUrl("Dict::ישראל");
+      for (var sig in dict.signatures) {
+        final classify = MorphProjection().classify(sig);
+        print("\t${classify.namedCategory()}");
+        expect(classify.category, MorphologicalCategories.noun);
+        expect(classify.decorations?.length, 1);
+        expect(classify.decorations?.first, Gender.masculine);
+      }
+    });
 
     // test("Test para Subistantivo - סֵפֶר ", () async {
     //   final dict = await dictRepo.getDictByUrl("Dict::סֵפֶר");

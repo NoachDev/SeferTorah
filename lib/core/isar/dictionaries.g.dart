@@ -152,12 +152,12 @@ P _dictDeserializeProp<P>(
 
 const _DictoriginEnumValueMap = {
   r'native': r'native',
-  r'aramaic': r'aramaic',
+  r'semitic': r'semitic',
   r'modern': r'modern',
 };
 const _DictoriginValueEnumMap = {
   r'native': Origin.native,
-  r'aramaic': Origin.aramaic,
+  r'semitic': Origin.semitic,
   r'modern': Origin.modern,
 };
 const _DictstageEnumValueMap = {

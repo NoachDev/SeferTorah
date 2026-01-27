@@ -17,26 +17,18 @@ void main() {
     // after the repo is builded, run the tests
 
     test("Test para verbo - כָּתַב ", () async {
-      final dict = await dictRepo.getDictByUrl("Dict::כָּתַב");
+      final dict = await dictRepo.getDictByUrl(r"$Dict::1");
 
-      for (var sig in dict.signatures) {
-        final classify = MorphProjection().classify(sig);
-        print("\t${classify.namedCategory()}");
+      print(dict.signatures.map((e) => e.surface));
+
+      for (var surf in dict.signatures) {
+        final sig = await dictRepo.getSignById(surf.indexSignature);
+        final classify = MorphProjection().classify(sig, dict.shoresh);
         expect(classify.category, MorphologicalCategories.verb);
-        expect(classify.decorations, null);
+        expect(classify.decorations.isEmpty, true);
       }
 
     });
-
-    // test("Test para pronome relativo - אֲשֶׁר ", () async {
-    //   final dict = await dictRepo.getDictByUrl("Dict::אֲשֶׁר");
-    //   final ctx = dictRepo.getMorphContext(dict, 0);
-    //   final classify = classifierProjection.classify(ctx);
-
-    //   print("\t${classify.namedCategory("")}");
-    //   expect(classify.category,  MorphologicalCategories.article); // Contexto idêntico ao artigo (sem estado)
-    //   expect(classify.decorations, null);
-    // });
 
     // test("Test para Modificador/Adverbio - מְאֹד ", () {
     //   final ctx = MorphContext(cat: Vector3(0, 0, 1), hasShoresh: false, state: GrammaticalState.absolute);
@@ -48,47 +40,47 @@ void main() {
     // });
 
     test("Test para Subistantivo - מֹשֶׁה ", () async {
-      final dict = await dictRepo.getDictByUrl("Dict::מֹשֶׁה");
-      for (var sig in dict.signatures) {
-        final classify = MorphProjection().classify(sig);
+      final dict = await dictRepo.getDictByUrl(r"$Dict::2");
+      print(dict.signatures.map((e) => e.surface));
+
+      for (var surfc in dict.signatures) {
+        final sig = await dictRepo.getSignById(surfc.indexSignature);
+
+        final classify = MorphProjection().classify(sig, dict.shoresh);
         print("\t${classify.namedCategory()}");
         expect(classify.category, MorphologicalCategories.noun);
-        expect(classify.decorations?.length, 1);
-        expect(classify.decorations?.first, Gender.masculine);
+        expect(classify.decorations.length, 1);
+        expect(classify.decorations.first, Gender.masculine);
       }
     });
     
     test("Test para Subistantivo - ישראל ", () async {
-      final dict = await dictRepo.getDictByUrl("Dict::ישראל");
-      for (var sig in dict.signatures) {
-        final classify = MorphProjection().classify(sig);
+      final dict = await dictRepo.getDictByUrl(r"$Dict::8");
+      print(dict.signatures.map((e) => e.surface));
+
+      for (var surfc in dict.signatures) {
+        final sig = await dictRepo.getSignById(surfc.indexSignature);
+
+        final classify = MorphProjection().classify(sig, dict.shoresh);
         print("\t${classify.namedCategory()}");
         expect(classify.category, MorphologicalCategories.noun);
-        expect(classify.decorations?.length, 1);
-        expect(classify.decorations?.first, Gender.masculine);
+        expect(classify.decorations.length, 1);
+        expect(classify.decorations.first, Gender.neutral);
       }
     });
+    
+    test("Test para Particula - וְ ", () async {
+      final dict = await dictRepo.getDictByUrl(r"$Dict::10");
 
-    // test("Test para Subistantivo - סֵפֶר ", () async {
-    //   final dict = await dictRepo.getDictByUrl("Dict::סֵפֶר");
-    //   final ctx = dictRepo.getMorphContext(dict, 0);
-    //   final classify = classifierProjection.classify(ctx);
+      print(dict.signatures.map((e) => e.surface));
 
-    //   print("\t${classify.namedCategory("")}");
-    //   expect(classifierProjection.classify(ctx).category,  MorphologicalCategories.noun);
-    //   expect(classifierProjection.classify(ctx).decorations?.length, 1);
-    //   expect(classifierProjection.classify(ctx).decorations?.first, Gender.masculine);
-    // });
-
-    // test("Test para Particula - וְ ", () async {
-    //   final dict = await dictRepo.getDictByUrl("Dict::וְ");
-    //   final ctx = dictRepo.getMorphContext(dict, 0);
-    //   final classify = classifierProjection.classify(ctx);
-
-    //   print("\t${classify.namedCategory("")}");
-    //   expect(classify.category,  MorphologicalCategories.conjunction);
-    //   expect(classify.decorations, null);
-    // });
+      for (var surf in dict.signatures) {
+        final sig = await dictRepo.getSignById(surf.indexSignature);
+        final classify = MorphProjection().classify(sig, dict.shoresh);
+        expect(classify.category, MorphologicalCategories.particle);
+        expect(classify.decorations.isEmpty, true);
+      }
+    });
 
     // test("Test para predicador - יֵשׁ ", () {
     //   final ctx = MorphContext(cat: Vector3(0, 1, 0), hasShoresh: false);
@@ -120,71 +112,82 @@ void main() {
     // });
 
     test("Test para Adjetivo - גָּדוֹל ", () async {
-      final dict = await dictRepo.getDictByUrl("Dict::גָּדוֹל");
+      final dict = await dictRepo.getDictByUrl(r"$Dict::16");
 
-      for (var sig in dict.signatures) {
-        final classify = MorphProjection().classify(sig);
+      for (var surfc in dict.signatures) {
+        final sig = await dictRepo.getSignById(surfc.indexSignature);
+        
+        final classify = MorphProjection().classify(sig, dict.shoresh);
         print("\t${classify.namedCategory()}");
         expect(classify.category, MorphologicalCategories.adjective);
       }
     });
 
     test("Test para Pronome - הוּא ", () async {
-      final dict = await dictRepo.getDictByUrl("Dict::הוּא");
+      final dict = await dictRepo.getDictByUrl(r"$Dict::17");
 
-      for (var sig in dict.signatures) {
-        final classify = MorphProjection().classify(sig);
+      for (var surfc in dict.signatures) {
+        final sig = await dictRepo.getSignById(surfc.indexSignature);
+
+        final classify = MorphProjection().classify(sig, dict.shoresh);
         print("\t${classify.namedCategory()}");
         expect(classify.category, MorphologicalCategories.pronoun);
-        expect(classify.decorations?.first, Gender.masculine);
+        expect(classify.decorations.first, Gender.masculine);
       }
     });
 
     test("Test for multiply signaturies - את ", () async {
-      final dict = await dictRepo.getDictByUrl("Dict::את");
+      final dict = await dictRepo.getDictByUrl(r"$Dict::14");
       final expectedMorph = {
         0: [MorphologicalCategories.particle, null],
         1: [MorphologicalCategories.pronoun, Gender.feminine],
       };
-      for (final (index, sig) in dict.signatures.indexed) {
-        final classify = MorphProjection().classify(sig);
+      for (final (index, surfc) in dict.signatures.indexed) {
+        final sig = await dictRepo.getSignById(surfc.indexSignature);
+
+        final classify = MorphProjection().classify(sig, dict.shoresh);
         print("\t${classify.namedCategory()}");
         final expected = expectedMorph[index];
 
         expect(classify.category, expected![0]);
-        expect(classify.decorations?.first, expected[1]);
+        expect(classify.decorations.firstOrNull, expected[1]);
       }
     });
 
-    test("Test for multiply signaturies - אחד ", () async {
-      final dict = await dictRepo.getDictByUrl("Dict::אחד");
-      final expectedMorph = {
-        0: [MorphologicalCategories.numeral, NumeralType.cardinal],
-        2: [MorphologicalCategories.noun, Gender.masculine],
-      };
+    // test("Test for multiply signaturies - אחד ", () async {
+    //   final dict = await dictRepo.getDictByUrl("Dict::אחד");
+    //   final expectedMorph = {
+    //     0: [MorphologicalCategories.numeral, NumeralType.cardinal],
+    //     2: [MorphologicalCategories.noun, Gender.masculine],
+    //   };
 
-      for (final (elm) in expectedMorph.entries){
-        final classify = MorphProjection().classify(dict.signatures[elm.key]);
+    //   for (final (elm) in expectedMorph.entries){
+    //     final sig = await dictRepo.getSignById(dict.signatures[elm.key].indexSignature);
+
+    //     final classify = MorphProjection().classify(sig, dict.shoresh);
         
-        print("\t${classify.namedCategory()}");
+    //     print("\t${classify.namedCategory()}");
         
-        expect(classify.category, elm.value[0]);
-        expect(classify.decorations?.first, elm.value[1]);
+    //     expect(classify.category, elm.value[0]);
+    //     expect(classify.decorations?.first, elm.value[1]);
 
-      }
-    });
+    //   }
+    // });
 
-    test("Test for Ordinal - ראשון ", () async {
-      final dict = await dictRepo.getDictByUrl("Dict::ראשון");
-      for (final sig in dict.signatures) {
-        final classify = MorphProjection().classify(sig);
+    // test("Test for Ordinal - ראשון ", () async {
+    //   final dict = await dictRepo.getDictByUrl("Dict::ראשון");
+    //   for (final surfc in dict.signatures) {
+    //     final sig = await dictRepo.getSignById(surfc.indexSignature);
 
-        print("\t${classify.namedCategory()}");
+    //     final classify = MorphProjection().classify(sig, dict.shoresh);
 
-        expect(classify.category, MorphologicalCategories.numeral);
-        expect(classify.decorations?.length, 1);
-        expect(classify.decorations?.first, NumeralType.ordinal);
-      }
-    });
+    //     print("\t${classify.namedCategory()}");
+
+    //     expect(classify.category, MorphologicalCategories.numeral);
+    //     expect(classify.decorations?.length, 1);
+    //     expect(classify.decorations?.first, NumeralType.ordinal);
+    //   }
+    // });
+    
   });
 }

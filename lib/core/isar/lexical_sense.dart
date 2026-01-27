@@ -10,12 +10,25 @@ class LexicalSense {
   @Enumerated(EnumType.name)
   final SemanticType type;
   
-  String? lemmaPt;         // escrever
-  String? lemmaPtCommentary;
+  final String? lemmaPt;         // escrever
+  final String? lemmaPtCommentary;
 
   LexicalSense({
     required this.type,
     this.lemmaPt,
     this.lemmaPtCommentary,
   });
+
+  factory LexicalSense.fromMap(Map<String, dynamic> map) {
+    return LexicalSense(
+      type: SemanticType.values.byName(map["type"]),
+      lemmaPt: map.containsKey("lemmaPt") ? map["lemmaPt"] : null,
+      lemmaPtCommentary: map.containsKey("lemmaPtCommentary") ? map["lemmaPtCommentary"] : null,
+    );
+  }
+
+  @override
+  String toString() {
+    return "Snese : $type , $lemmaPt , $lemmaPtCommentary";
+  }
 }

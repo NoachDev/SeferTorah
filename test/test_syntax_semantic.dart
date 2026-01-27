@@ -5,17 +5,16 @@ import 'repo.dart';
 
 void main() {
   final repoController = CreateRepo();
-  final dictRepo = RepositoryOfDictionaries();
 
   repoController.build().then((_) {
     /// after the repo is builded, run the tests
 
     group("VSO - כָּתַב מֹשֶׁה סֵפֶר", () {
-      final String normSentence = "\$Dict::סֵפֶר\$Dict::מֹשֶׁה\$Dict::כָּתַב";
-      final verse = RepoOfOneVerse();
+      final String normSentence = r"$Dict::3$Dict::2$Dict::1";
+      final verse = RepoOfOneVerse(normSentence);
 
       test("Creating tokens ...", () async {
-        await verse.buildTokens(normSentence);
+        await verse.buildTokens();
         expect(verse.tokensSentence.length, 3);
       });
 
@@ -51,7 +50,7 @@ void main() {
       test("Translate", () {
         var semantic = verse.semanticGraphs.first;
         var lin = semantic.linearizationSVO();
-        expect(lin.join().trim(), "Moshe escrever livro");
+        expect(lin.join().trim(), "Moises escrever livro");
       });
 
       /// end of group
@@ -61,14 +60,17 @@ void main() {
       "וַיִּכְתֹּב מֹשֶׁה אֶת־הַסֵּפֶר אֲשֶׁר נָתַן הַנָּשִׂיא לְבְנֵי יִשְׂרָאֵל בַּמִּדְבָּר",
       () {
         final String normSentence =
-            "\$Dict::מִּדְבָּר\$Dict::בַּ\$Dict::יִשְׂרָאֵל\$Dict::בְנֵי\$Dict::לְ\$Dict::נָּשִׂיא\$Dict::הַ\$Dict::נָתַן\$Dict::אֲשֶׁר\$Dict::סֵּפֶר\$Dict::הַ::־\$Dict::אֶת\$Dict::מֹשֶׁה\$Dict::כְתֹּב\$Dict::יִּ\$Dict::וַ";
+            r"$Group{$Dict::9$Dict::12}$Dict::8$Group{$Dict::7$Dict::13$}$Group{$Dict::6$Dict::11}$Dict::5$Dict::4$Group{$Dict::3$Dict::11$Mark::־$Dict::14}$Dict::2$Group{$Dict::1$Dict::15$Dict::10}";
 
-        final verse = RepoOfOneVerse();
+        final verse = RepoOfOneVerse(normSentence);
+
+        // print(verse.normSentence);
 
         test("Creating tokens ...", () async {
-          await verse.buildTokens(normSentence);
+          await verse.buildTokens();
           expect(verse.tokensSentence.length, 16);
         });
+
 
         test("Create syntax graph ...", () {
           verse.buildedSynataxGraph;
@@ -104,8 +106,19 @@ void main() {
             15: "Node(15)->[complement->Node(12)]",
           };
 
+          final hyp = verse.syntaxBuilder.hypotheses.first;
+          
+          // final node12 = hyp.nodes[12];
+          // final node13 = hyp.nodes[13];
+          // print(node12.projection.category.name);
+          // print(node12.projection.source.abstractLexicalTraits?.grammaticalState);
+          // print(verse.tokensSentence[12].projections[0].source.categoricalTraits);
+
+          // print(node13.projection.category.name);
+          // print(verse.tokensSentence[13].projections[0].source.categoricalTraits);
+
           for (final (index, node)
-              in verse.syntaxBuilder.hypotheses.first.toListString().indexed) {
+              in hyp.toListString().indexed) {
             // print("\t\tNode: $node");
 
             if (expec.containsKey(index)) {
@@ -124,7 +137,7 @@ void main() {
           var semantic = verse.semanticGraphs.first;
           var lin = semantic.linearizationSVO();
 
-          expect(lin.join().trim(), "e Moshe escrever o livro que o lider dar para filhos israel no deserto");
+          expect(lin.join().trim(), "e Moises escrever o livro que o lider dar para filhos israel no deserto");
         });
 
         // end of group

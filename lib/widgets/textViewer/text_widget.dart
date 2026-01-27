@@ -47,8 +47,7 @@ class TextWidget extends StatelessWidget {
     // ],
     required this.hebrewTextKeys,
     required this.hebrewTextValues,
-    this.translatedText =
-        "A terra era sem forma e vazia; e havia trevas sobre a face do abismo, mas o Espírito de Deus pairava sobre a face das águas",
+    required this.translatedText,
   }) : assert(
          hebrewTextKeys.length == hebrewTextValues.length,
          "The lenght of HebrewKeys and HebrewValues must be the same",

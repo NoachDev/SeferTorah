@@ -1,0 +1,70 @@
+[
+  {
+    "type": "event",
+    "lemmaPt": "escrever"
+  },
+  {
+    "type": "entity",
+    "lemmaPt": "Moises",
+    "lemmaPtCommentary": "Moshe"
+  },
+  {
+    "type": "entity",
+    "lemmaPt": "livro"
+  },
+  {
+    "type": "property",
+    "lemmaPt": "que"
+  },
+  {
+    "type": "event",
+    "lemmaPt": "dar"
+  },
+  {
+    "type": "entity",
+    "lemmaPt": "lider"
+  },
+  {
+    "type": "entity",
+    "lemmaPt": "filhos"
+  },
+  {
+    "type": "entity",
+    "lemmaPt": "israel"
+  },
+  {
+    "type": "entity",
+    "lemmaPt": "deserto"
+  },
+  {
+    "type": "property",
+    "lemmaPt": "e"
+  },
+  {
+    "type": "property",
+    "lemmaPt": "o"
+  },
+  {
+    "type": "property",
+    "lemmaPt": "no"
+  },
+  {
+    "type": "property",
+    "lemmaPt": "para"
+  },
+  {
+    "type": "gramma"
+  },
+  {
+    "type": "property",
+    "lemmaPt": "grande"
+  },
+  {
+    "type": "property",
+    "lemmaPt": "ele"
+  },
+  {
+    "type": "property",
+    "lemmaPt": "primeiro"
+  }
+]

@@ -4,100 +4,74 @@ import 'package:sefertorah/core/models/dictionaries.dart';
 part 'dictionaries.g.dart';
 
 @embedded
-class Mishkal {
-  late String pattern;
-
-  @Enumerated(EnumType.name)
-  late MishkalType type;
-}
-
-@embedded
-interface class MorphologicalTraits {
-  // Formative;
-  @Enumerated(EnumType.name)
-  Binyan? binyan;
-
-  @Enumerated(EnumType.name)
-  Mishkal? mishqal;
-
-  // Flexionais
-  @Enumerated(EnumType.name)
-  Number? number;
-
-  @Enumerated(EnumType.name)
-  Gender? gender;
-
-  @Enumerated(EnumType.name)
-  VerbForm? form;
-
-  @Enumerated(EnumType.name)
-  VerbTense? tense;
-
-  @Enumerated(EnumType.name)
-  Person? person;
-}
-
-@embedded
 class Shoresh {
   late String root;
   // late int radicalCount; // == root.length
   late bool weak;
+
+  Shoresh();
+
+  factory Shoresh.fromMap(Map<String, dynamic> map) {
+    return Shoresh()
+      ..root = map["root"]
+      ..weak = map["weak"];
+  }
 }
 
 @embedded
-interface class LexicalTraits {
+interface class SurfaceSignature {
+  late String surface; // the word with nekudots
 
-  Shoresh? shoresh;
+  late int indexSense;
+  late int indexSignature;
 
-  @Enumerated(EnumType.name)
-  GrammaticalState? grammaticalState;
-}
+  SurfaceSignature();
 
-@embedded
-interface class Signature {
-  // late String signatureId;
-
-  late List<byte> categoricalTraits; // is a 3d vector
-  late MorphologicalTraits? internalMorphologicalTraits;
-  late LexicalTraits? abstractLexicalTraits;
+  factory SurfaceSignature.fromMap(Map<String, dynamic> map) {
+    return SurfaceSignature()
+      ..surface = map["surface"]
+      ..indexSense = map["indexSense"]
+      ..indexSignature = map["indexSignature"];
+  }
 }
 
 @collection
 class Dict {
   Id id = Isar.autoIncrement;
 
-  late String word;
+  final String word;
 
   @Enumerated(EnumType.name)
-  late Origin origin;
+  final Origin origin;
 
   @Enumerated(EnumType.name)
-  late Stage stage;
+  final Stage stage;
 
-  late List<Signature> signatures;
+  final Shoresh? shoresh;
+
+  List<SurfaceSignature> signatures;
 
   Dict({
     required this.word,
     required this.origin,
     required this.stage,
     required this.signatures,
+    required this.shoresh,
   });
-}
 
-
-@collection
-class DictSenseLink {
-  Id id = Isar.autoIncrement;
-
-  late int dictId;
-  late int indexAssinature;
-  late int lexicalSenseId;
-
-  DictSenseLink({
-    required this.dictId,
-    required this.indexAssinature,
-    required this.lexicalSenseId,
-  });
+  factory Dict.fromMap(Map<String, dynamic> map) {
+    return Dict(
+      word: map["word"],
+      origin: Origin.values.byName(map["origin"]),
+      stage: Stage.values.byName(map["stage"]),
+      shoresh: map.containsKey("shoresh") ? Shoresh.fromMap(map["shoresh"]) : null,
+      signatures: map.containsKey("signatures")
+          ? List<SurfaceSignature>.from(
+              map["signatures"].map((elm) => SurfaceSignature.fromMap(elm)),
+            )
+          : [],
+    );
+  }
 }
 
 ///

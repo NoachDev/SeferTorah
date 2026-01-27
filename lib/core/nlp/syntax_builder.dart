@@ -1,4 +1,4 @@
-import 'package:sefertorah/core/isar/dictionaries.dart';
+import 'package:sefertorah/core/isar/signatures.dart';
 import 'package:sefertorah/core/models/dictionaries.dart';
 import 'dart:math';
 
@@ -129,10 +129,6 @@ class SyntaxRelation {
     return '${from.tokenIndex} --${kind.name}--> ${to.tokenIndex}';
   }
 
-  @override
-  bool operator ==(Object other) {
-    return super.toString() == other.toString();
-  }
 }
 
 class ParseState {

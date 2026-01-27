@@ -3,6 +3,7 @@ import 'package:path_provider/path_provider.dart';
 import 'books.dart';
 import 'dictionaries.dart';
 import 'lexical_sense.dart';
+import 'signatures.dart';
 
 late final Isar isar;
 
@@ -12,8 +13,8 @@ Future<void> initializeIsar() async {
     [
       BookSchema,
       DictSchema,
-      DictSenseLinkSchema,
       LexicalSenseSchema,
+      SignatureSchema,
     ],
     directory: dir.path,
   );

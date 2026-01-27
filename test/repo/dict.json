@@ -1,0 +1,231 @@
+[
+  {
+    "word": "כתב",
+    "origin": "native",
+    "stage": "biblical",
+    "shoresh": {
+      "root": "כ-ת-ב",
+      "weak": false
+    },
+    "signatures": [
+      {
+        "surface": "כָּתַב",
+        "indexSense": 1,
+        "indexSignature": 1
+      }
+    ]
+  },
+  {
+    "word": "משה",
+    "origin": "native",
+    "stage": "biblical",
+    "signatures": [
+      {
+        "surface": "מֹשֶׁה",
+        "indexSense": 2,
+        "indexSignature": 2
+      }
+    ]
+  },
+  {
+    "word": "ספר",
+    "origin": "native",
+    "stage": "biblical",
+    "signatures": [
+      {
+        "surface": "סֵפֶר",
+        "indexSense": 3,
+        "indexSignature": 2
+      }
+    ]
+  },
+  {
+    "word": "אשר",
+    "origin": "native",
+    "stage": "biblical",
+    "signatures": [
+      {
+        "surface": "אֲשֶׁר",
+        "indexSense": 4,
+        "indexSignature": 3
+      }
+    ]
+  },
+  {
+    "word": "נתן",
+    "origin": "native",
+    "stage": "biblical",
+    "signatures": [
+      {
+        "surface": "נָתַן",
+        "indexSense": 5,
+        "indexSignature": 4
+      }
+    ]
+  },
+  {
+    "word": "נשיא",
+    "origin": "native",
+    "stage": "biblical",
+    "signatures": [
+      {
+        "surface": "נָּשִׂיא",
+        "indexSense": 6,
+        "indexSignature": 5
+      }
+    ]
+  },
+  {
+    "word": "בני",
+    "origin": "native",
+    "stage": "biblical",
+    "shoresh": {
+      "root": "ב-נ-י",
+      "weak": false
+    },
+    "signatures": [
+      {
+        "surface": "בְנֵי",
+        "indexSense": 7,
+        "indexSignature": 6
+      }
+    ]
+  },
+  {
+    "word": "ישראל",
+    "origin": "native",
+    "stage": "biblical",
+    "shoresh": {
+      "root" : "י-ש-ר",
+      "weak": false
+    },
+    "signatures": [
+      {
+        "surface": "יִשְׂרָאֵל",
+        "indexSense": 8,
+        "indexSignature": 14
+      }
+    ]
+  },
+  {
+    "word": "מדבר",
+    "origin": "native",
+    "stage": "biblical",
+    "shoresh": {
+      "root" : "ד-ב-ר",
+      "weak": false
+    },
+    "signatures": [
+      {
+        "surface": "מִּדְבָּר",
+        "indexSense": 9,
+        "indexSignature": 7
+      }
+    ]
+  },
+  {
+    "word": "ו",
+    "origin": "native",
+    "stage": "biblical",
+    "signatures": [
+      {
+        "surface": "וַ",
+        "indexSense": 10,
+        "indexSignature": 3
+      }
+    ]
+  },
+  {
+    "word": "ה",
+    "origin": "native",
+    "stage": "biblical",
+    "signatures": [
+      {
+        "surface": "הַ",
+        "indexSense": 11,
+        "indexSignature": 3
+      }
+    ]
+  },
+  {
+    "word": "ב",
+    "origin": "native",
+    "stage": "biblical",
+    "signatures": [
+      {
+        "surface": "בַּ",
+        "indexSense": 12,
+        "indexSignature": 3
+      }
+    ]
+  },
+  {
+    "word": "ל",
+    "origin": "native",
+    "stage": "biblical",
+    "signatures": [
+      {
+        "surface": "לְ",
+        "indexSense": 13,
+        "indexSignature": 3
+      }
+    ]
+  },
+  {
+    "word": "את",
+    "origin": "native",
+    "stage": "biblical",
+    "signatures": [
+      {
+        "surface": "אֶת",
+        "indexSense": 14,
+        "indexSignature": 8
+      },
+      {
+        "surface": "אֶת",
+        "indexSense": 14,
+        "indexSignature": 9
+      }
+    ]
+  },
+  {
+    "word": "י",
+    "origin": "native",
+    "stage": "biblical",
+    "signatures": [
+      {
+        "surface": "י",
+        "indexSense": 14,
+        "indexSignature": 10
+      }
+    ]
+  },
+  {
+    "word": "גדול",
+    "origin": "native",
+    "stage": "biblical",
+    "shoresh": {
+      "root": "ג-ד-ל",
+      "weak": false
+    },
+    "signatures": [
+      {
+        "surface": "גָדוֹל",
+        "indexSense": 16,
+        "indexSignature": 11
+      }
+    ]
+  },
+  {
+    "word": "הוא",
+    "origin": "native",
+    "stage": "biblical",
+    "signatures": [
+      {
+        "surface": "הוּא",
+        "indexSense": 17,
+        "indexSignature": 12
+      }
+    ]
+  }
+]

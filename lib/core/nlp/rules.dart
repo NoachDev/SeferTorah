@@ -1,8 +1,9 @@
 import 'package:sefertorah/core/isar/dictionaries.dart';
+import 'package:sefertorah/core/isar/signatures.dart';
 import 'package:sefertorah/core/models/dictionaries.dart';
 import 'package:sefertorah/core/nlp/util.dart';
 
-typedef Condition = bool Function(Signature);
+typedef Condition = bool Function(Signature, Shoresh?);
 typedef Action = MorphologicalCategory Function(Signature);
 
 RuleBuilder rule() => RuleBuilder();
@@ -32,7 +33,7 @@ final List<Rule> rules = [
  
   rule()
       .when(
-        (c) =>
+        (c, s) =>
             c.categoricalTraits[1] > 0 &&
             c.categoricalTraits[0] == 0 &&
             c.internalMorphologicalTraits?.binyan != null,
@@ -45,10 +46,10 @@ final List<Rule> rules = [
 
   rule()
       .when(
-        (c) =>
+        (c, s) =>
             c.categoricalTraits[2] > 0 &&
             c.internalMorphologicalTraits?.mishqal != null &&
-            c.abstractLexicalTraits?.shoresh != null &&
+            s != null &&
             c.internalMorphologicalTraits?.binyan == null &&
             !acceptsConstruct(c),
       )
@@ -58,7 +59,7 @@ final List<Rule> rules = [
       ),
 
   rule()
-      .when((c) => c.categoricalTraits[0] > 0 && isPronounLike(c))
+      .when((c,s) => c.categoricalTraits[0] > 0 && isPronounLike(c,s))
       .then(
         (c) => MorphologicalCategory(
           category: MorphologicalCategories.pronoun,
@@ -67,7 +68,7 @@ final List<Rule> rules = [
       ),
 
   rule()
-      .when((c) => c.categoricalTraits[0] > 0 && isOrdinalLike(c))
+      .when((c,s) => c.categoricalTraits[0] > 0 && isOrdinalLike(c,s))
       .then(
         (c) => MorphologicalCategory(
           category: MorphologicalCategories.numeral,
@@ -76,7 +77,7 @@ final List<Rule> rules = [
       ),
 
   rule()
-      .when((c) => c.categoricalTraits[2] > 0 && isCardinalLike(c))
+      .when((c,s) => c.categoricalTraits[2] > 0 && isCardinalLike(c,s))
       .then(
         (c) => MorphologicalCategory(
           category: MorphologicalCategories.numeral,
@@ -87,7 +88,7 @@ final List<Rule> rules = [
   /// TODO : Need do more rules
   
   rule()
-      .when((c) => c.categoricalTraits[0] > 0)
+      .when((c,s) => c.categoricalTraits[0] > 0)
       .then(
         (c) => MorphologicalCategory(
           category: MorphologicalCategories.noun,
@@ -97,7 +98,7 @@ final List<Rule> rules = [
   
   /// TODO : The particles need one rule sophisticated 
   rule()
-      .when((c) => true)
+      .when((c,s) => true)
       .then(
         (_) =>
             MorphologicalCategory(category: MorphologicalCategories.particle),

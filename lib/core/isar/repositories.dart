@@ -5,11 +5,9 @@ import 'package:sefertorah/core/isar/books.dart';
 import 'package:sefertorah/core/isar/dictionaries.dart';
 import 'package:sefertorah/core/isar/isar_setup.dart';
 import 'package:sefertorah/core/isar/lexical_sense.dart';
-import 'package:sefertorah/core/nlp/dsl.dart';
+import 'package:sefertorah/core/isar/signatures.dart';
 import 'package:sefertorah/core/nlp/semantic_builder.dart';
-import 'package:sefertorah/core/nlp/util.dart';
 import 'package:sefertorah/core/nlp/syntax_builder.dart';
-import 'package:vector_math/vector_math.dart';
 
 final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -154,32 +152,50 @@ mixin class RepositoryOfBooks {
   }
 }
 
-mixin class RepositoryOfLexicalSenses {
-  Future<LexicalSense?> getSenseById(int dictId, int index) async {
-    var link = await isar.dictSenseLinks
-        .filter()
-        .dictIdEqualTo(dictId)
-        .and()
-        .indexAssinatureEqualTo(index)
-        .findFirst();
+class RepositoryOfDictionaries {
+  Future<Signature> getSignById(int id) async {
+    final sig = await isar.signatures.get(id);
 
-    if (link == null) {
-      // throw ErrorDescription(
-      //   "Not find the LexicalSense link for dictId: $dictId and assinature index: $index",
-      // );
-      return null;
+    if (sig != null) {
+      return sig;
     }
 
-    return isar.lexicalSenses.get(link.lexicalSenseId);
+    throw ErrorDescription("Not find the signature with id: $id");
   }
-}
 
-class RepositoryOfDictionaries {
-  List<String> getUrlFromSentence(String sentence) {
-    return sentence
-        .split("\$")
-        .where((part) => part.startsWith("Dict::"))
-        .toList();
+  Future<LexicalSense> getSenseById(int id) async {
+    var sense = await isar.lexicalSenses.get(id);
+
+    if (sense != null) {
+      return sense;
+    }
+
+    throw ErrorDescription("Not find the Sense with id: $id");
+  }
+
+  List<String> getUrlFromSentence(
+    String sentence, [
+    bool expanded = true,
+    bool includeMarks = false,
+  ]) {
+    final exp = RegExp(r'\$Group\{(.*?)\}|\$Dict::([^$]*)');
+    final matches = exp.allMatches(sentence);
+
+    List<String> ret = [];
+
+    for (var part in matches) {
+      if (part[0]!.startsWith(r"$Dict::")) {
+        ret.add(part[0]!);
+      } else if (includeMarks && part[0]!.startsWith(r"$Mark::")) {
+        ret.add(part[0]!);
+      } else if (part[0]!.startsWith(r"$Group{") && expanded) {
+        ret.addAll(
+          getUrlFromSentence(part[0]!.substring(7, part[0]!.length - 1)),
+        );
+      }
+    }
+
+    return ret;
   }
 
   String hebrewClened(String word) {
@@ -189,22 +205,24 @@ class RepositoryOfDictionaries {
   Future<Dict> getDictByUrl(String url) async {
     var parts = url.split("::");
 
-    if (parts[0] != "Dict") {
+    if (parts[0] != r"$Dict") {
       throw ErrorDescription("Invalid dictionary URL: $url");
     }
 
-    var word = parts[1];
+    var id = parts[1];
     // var assinatureIndex = int.parse(parts[2]);
+    late int parse;
 
-    var dict = await isar.dicts
-        .filter()
-        .wordEqualTo(hebrewClened(word))
-        .findFirst();
+    try {
+      parse = int.parse(id);
+    } catch (e) {
+      throw ErrorDescription("Invalid dictionary URL: $url");
+    }
+
+    var dict = await isar.dicts.get(parse);
 
     if (dict == null) {
-      throw ErrorDescription(
-        "Dictionary not found for word: $word - ${hebrewClened(word)}",
-      );
+      throw ErrorDescription("Dictionary not found for id: $id");
     }
 
     // if (assinatureIndex < 0 || assinatureIndex >= dict.assinatures.length) {
@@ -217,14 +235,20 @@ class RepositoryOfDictionaries {
   }
 }
 
-class RepoOfOneVerse extends RepositoryOfDictionaries
-    with RepositoryOfLexicalSenses {
+class RepoOfOneVerse extends RepositoryOfDictionaries {
   final syntaxBuilder = SyntaxBuilder();
 
   final List<SyntaxToken> tokensSentence = [];
   final List<SemanticBuilder> semanticGraphs = [];
 
-  final List<int> _dictsId = [];
+  final List<Dict> _cachedDicts = [];
+  final String sentence;
+
+  RepoOfOneVerse(this.sentence);
+
+  String? _normSentence;
+
+  String get normSentence => _normSentence ?? _getNormSentence(sentence);
 
   bool get buildedSynataxGraph {
     if (tokensSentence.isNotEmpty) {
@@ -235,21 +259,57 @@ class RepoOfOneVerse extends RepositoryOfDictionaries
     return false;
   }
 
+  String _getNormSentence(String sent) {
+    final url = getUrlFromSentence(sent, false, true).reversed;
+
+    return url
+        .map((String e) {
+          if (e.startsWith(r'$Dict')) {
+            final parts = e.split("::");
+            late int index;
+
+            if (parts.length == 3) {
+              index = int.parse(parts[2]);
+            } else {
+              // TODO: when have more of one projection, the graph define them
+
+              index = 0;
+            }
+
+            return _cachedDicts
+                .where((val) => val.id == int.parse(parts[1]))
+                .first
+                .signatures[index]
+                .surface;
+          } else if (e.startsWith(r'$Mark')) {
+            return e.split("::")[1];
+          }
+
+          // else if (e.startsWith(r'$Group'))
+          final add = _getNormSentence(sent);
+          add.replaceAll(" ", "");
+
+          return add;
+        })
+        .join(" ")
+        .trim();
+  }
+
   Future<bool> get buildedSemanticGraph async {
     if (buildedSynataxGraph) {
       for (final state in syntaxBuilder.hypotheses) {
         final senses = <LexicalSense?>[];
 
         for (final node in state.nodes) {
-          final id = _dictsId[node.tokenIndex];
+          final dict = _cachedDicts[node.tokenIndex];
           // the index of projection is the same of index of siginature in dict
           final indexOfSigin = tokensSentence[node.tokenIndex].projections
               .indexOf(node.projection);
 
-          senses.add(await getSenseById(id, indexOfSigin));
+          senses.add(
+            await getSenseById(dict.signatures[indexOfSigin].indexSense),
+          );
         }
-
-        
 
         semanticGraphs.add(SemanticBuilder(state, senses));
       }
@@ -259,22 +319,36 @@ class RepoOfOneVerse extends RepositoryOfDictionaries
     return false;
   }
 
-  Future<void> buildTokens(String sentence) async {
+  Future<void> buildTokens() async {
     for (var url in getUrlFromSentence(sentence).reversed) {
       final dict = await getDictByUrl(url);
-      final projections = dict.signatures.map(
-        (sign) => SyntacticProjection.create(sign),
-      );
+      final parts = url.split("::");
+
+      late List<SyntacticProjection> projections;
+
+      if (parts.length == 3) {
+        final sign = await getSignById(
+          dict.signatures[int.parse(parts[2])].indexSignature,
+        );
+        projections = [SyntacticProjection.create(sign)];
+      } else {
+        projections = await Future.wait(
+          dict.signatures.map((surfc) async {
+            final sign = await getSignById(surfc.indexSignature);
+            return SyntacticProjection.create(sign);
+          }),
+        );
+      }
 
       tokensSentence.add(
         SyntaxToken(
           index: tokensSentence.length,
           surface: dict.word,
-          projections: projections.toList(),
+          projections: projections,
         ),
       );
 
-      _dictsId.add(dict.id);
+      _cachedDicts.add(dict);
     }
   }
 }

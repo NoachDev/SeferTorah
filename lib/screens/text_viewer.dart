@@ -184,6 +184,7 @@ class TextViewer extends ConsumerWidget {
                                         fitScroll: fitScroll,
                                         hebrewTextKeys: ["", ""],
                                         hebrewTextValues: ["terra", "era"],
+                                        translatedText: "A terra era sem forma e vazia; e havia trevas sobre a face do abismo, mas o Espírito de Deus pairava sobre a face das águas",
                                       ),
                                       Padding(
                                         padding: EdgeInsets.all(

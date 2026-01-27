@@ -1,18 +1,21 @@
 import 'package:sefertorah/core/isar/dictionaries.dart';
+import 'package:sefertorah/core/isar/signatures.dart';
 import 'package:sefertorah/core/models/dictionaries.dart';
 
-bool isPronounLike(Signature d) {
+/// TODO : implement functions in syntax_builder
+
+bool isPronounLike(Signature d, Shoresh? shoresh) {
   return d.internalMorphologicalTraits?.person != null &&
-      d.abstractLexicalTraits?.shoresh == null &&
+      shoresh == null &&
       d.internalMorphologicalTraits?.mishqal == null &&
-      !acceptsArticle(d) &&
+      !acceptsArticle(d, shoresh) &&
       !acceptsConstruct(d);
 }
 
 // Verbs, Particles and prons not accpt articles
-bool acceptsArticle(Signature d) {
+bool acceptsArticle(Signature d, Shoresh? shoresh) {
   if (d.internalMorphologicalTraits?.binyan == null) return false;
-  if (d.abstractLexicalTraits?.shoresh == null &&
+  if (shoresh == null &&
       d.internalMorphologicalTraits?.mishqal == null) {
     return false;
   }
@@ -29,10 +32,10 @@ bool acceptsModifier(Signature d) {
   return d.categoricalTraits[0] > 0;
 }
 
-bool isOrdinalLike(Signature d) {
+bool isOrdinalLike(Signature d, Shoresh? shoresh) {
   /// needed traits
   if (d.internalMorphologicalTraits?.mishqal == null ||
-      d.abstractLexicalTraits?.shoresh == null ||
+      shoresh == null ||
       d.internalMorphologicalTraits?.gender == null ||
       d.abstractLexicalTraits?.grammaticalState != GrammaticalState.absolute) {
     return false;
@@ -46,9 +49,9 @@ bool isOrdinalLike(Signature d) {
   return true;
 }
 
-bool isCardinalLike(Signature d) {
+bool isCardinalLike(Signature d, Shoresh? shoresh) {
   /// needed traits
-  if (d.abstractLexicalTraits?.shoresh == null ||
+  if (shoresh == null ||
       d.abstractLexicalTraits?.grammaticalState != GrammaticalState.absolute) {
     return false;
   }

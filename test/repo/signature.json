@@ -1,0 +1,185 @@
+[
+  {
+    "categoricalTraits": [
+      0,
+      1,
+      0
+    ],
+    "internalMorphologicalTraits": {
+      "binyan": "qal",
+      "gender": "masculine"
+    }
+  },
+  {
+    "categoricalTraits": [
+      1,
+      0,
+      0
+    ],
+    "internalMorphologicalTraits": {
+      "mishqal": {
+        "pattern": "ketel",
+        "type": "nominal"
+      },
+      "gender": "masculine"
+    }
+  },
+  {
+    "categoricalTraits": [
+      0,
+      0,
+      1
+    ]
+  },
+  {
+    "categoricalTraits": [
+      0,
+      1,
+      0
+    ],
+    "internalMorphologicalTraits": {
+      "binyan": "qal",
+      "form": "participle",
+      "gender": "masculine"
+    }
+  },
+  {
+    "categoricalTraits": [
+      1,
+      0,
+      0
+    ],
+    "internalMorphologicalTraits": {
+      "gender": "masculine",
+      "number": "singular"
+    },
+    "abstractLexicalTraits": {
+      "grammaticalState": "absolute"
+    }
+  },
+  {
+    "categoricalTraits": [
+      1,
+      0,
+      0
+    ],
+    "internalMorphologicalTraits": {
+      "gender": "masculine",
+      "number": "plural"
+    },
+    "abstractLexicalTraits": {
+      "grammaticalState": "construct"
+    }
+  },
+  {
+    "categoricalTraits": [
+      1,
+      0,
+      0
+    ],
+    "internalMorphologicalTraits": {
+      "mishqal": {
+        "pattern": "ketel",
+        "type": "nominal"
+      },
+      "gender": "masculine",
+      "number": "singular"
+    },
+    "abstractLexicalTraits": {
+      "grammaticalState": "absolute"
+    }
+  },
+  {
+    "categoricalTraits": [
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "categoricalTraits": [
+      1,
+      0,
+      0
+    ],
+    "internalMorphologicalTraits": {
+      "gender": "feminine",
+      "number": "singular",
+      "person": "second"
+    }
+  },
+  {
+    "categoricalTraits": [
+      0,
+      0,
+      0
+    ],
+    "internalMorphologicalTraits": {
+      "gender": "masculine",
+      "number": "singular",
+      "person": "third",
+      "form": "imperfect"
+    }
+  },
+  {
+    "categoricalTraits": [
+      0,
+      0,
+      1
+    ],
+    "internalMorphologicalTraits": {
+      "mishqal": {
+        "pattern": "ketel",
+        "type": "nominal"
+      },
+      "gender": "masculine"
+    },
+    "abstractLexicalTraits": {
+      "grammaticalState": "absolute"
+    }
+  },
+  {
+    "categoricalTraits": [
+      1,
+      0,
+      0
+    ],
+    "internalMorphologicalTraits": {
+      "gender": "masculine",
+      "number": "singular",
+      "person": "third"
+    }
+  },
+  {
+    "categoricalTraits": [
+      1,
+      1,
+      0
+    ],
+    "internalMorphologicalTraits": {
+      "mishqal": {
+        "pattern": "ketel",
+        "type": "nominal"
+      },
+      "gender": "masculine",
+      "number": "singular"
+    },
+    "abstractLexicalTraits": {
+      "grammaticalState": "absolute"
+    }
+  },
+  {
+    "categoricalTraits": [
+      1,
+      0,
+      0
+    ],
+    "internalMorphologicalTraits": {
+      "number": "singular",
+      "gender": "neutral"
+    },
+    "abstractLexicalTraits": {
+      "grammaticalState": "absolute"
+    }
+  }
+]

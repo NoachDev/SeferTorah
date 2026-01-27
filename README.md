@@ -16,16 +16,16 @@ Um projeto feito com flutter para disponibilizar conteudo de torah com privacida
   - [x] lista de livros em uma Bottom Sheet
   - [ ] Mecanismo de Busca e perguntas
 
-- [ ] Reader
+- [1/2] Reader
   - [1/2] ferramentas em uma Bottom Sheet
     - [ ] Comentarios
     - [ ] Referencias
-    - [ ] Dicionario
+    - [ ] Dicionario ( é um link * )
 
   - [ ] Tradutor
-    - [ ] with deep learning
-    - [ ] simple translation
-    - [ ] deep translation
+    - [x] simple translation
+    - [ ] objetve translation
+    - [ ] deep translation ( ML )
 
   - [ ] Transliteração
   - [ ] Configurações
@@ -37,6 +37,10 @@ Um projeto feito com flutter para disponibilizar conteudo de torah com privacida
 - [ ] Locais kosher
 
 - [ ] Aprendizado
+  - [ ] Dicionario *
+    - [x] Morfologia
+    - [x] Sintaxe
+    - [x] Semantica
 
 - [ ] Tour pelo App
 
@@ -52,4 +56,4 @@ Desse modo esse projeto dispom uma clara inteção de disponibilizar traduções
 Este projeto é feito com dedicação e esforço, e distribuido de forma gratuita. De outra forma os custos para o desenvolvimento e manuttenções são consideraveis e recorrentes, sendo assim convido-te para contribuir quer seja na programação, com dinheiro ou em suas **rezas** - Este é o principal.
 
 - Este é mantido sobre outros frameworks, open-source, que também são sustentados por doações. Dessa forma, os recursos obtidos serao em partes detinados a esses trabalhos ( como a [sefaria](https://github.com/Sefaria) ) 
-- Assim, feito com amor e mantido por doações, fica explicitamente errado utlizar-se deste por outrem para fins comerciais, como previsto na licensa.
+- Assim, feito com amor e mantido por doações, está explicitamente errado utlizar-se deste por outrem para fins comerciais, como previsto na licensa.

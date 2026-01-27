@@ -11,7 +11,7 @@ enum Binyan { qal, nifal, piel, pual, hifil, hufal, hitpael }
 enum Number { plural, singular, dual }
 
 enum Gender {
-  masculine(br: "Macullino"),
+  masculine(br: "Maculino"),
   feminine(br: "Feminino"),
   neutral(br: "Neutro");
 
@@ -64,9 +64,9 @@ enum MorphologicalCategories {
 
 class MorphologicalCategory {
   final MorphologicalCategories category;
-  final Set<dynamic>? decorations;
+  final Set<dynamic> decorations;
 
-  MorphologicalCategory({required this.category, this.decorations = null});
+  MorphologicalCategory({required this.category, this.decorations = const {}});
 
   factory MorphologicalCategory.empty(){
     throw MorphologicalCategory(category: MorphologicalCategories.undefined);
@@ -83,12 +83,9 @@ class MorphologicalCategory {
       default:
         var add = "";
 
-        if (decorations != null){
-
-          for (final elm in decorations!.map((elm) => elm.br)){
+          for (final elm in decorations){
             add += " $elm";
           }
-        }
         
         return category.br! + add;
     }

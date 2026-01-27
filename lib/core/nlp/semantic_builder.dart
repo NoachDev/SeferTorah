@@ -89,7 +89,7 @@ class Bucket {
     ret.write("agent : ${agent?.sense.lemmaPt}\n");
     ret.write("theme : ${theme?.sense.lemmaPt}\n");
     for (var (index, elm) in recipient.indexed) {
-      ret.write("recipient ${index + 1} : ${elm?.sense.lemmaPt}\n");
+      ret.write("recipient ${index + 1} : ${elm.sense.lemmaPt}\n");
     }
     for (var (index, elm) in modifier.indexed) {
       ret.write("modifier ${index + 1} : ${elm.sense.lemmaPt}\n");
@@ -129,8 +129,8 @@ class SemanticBuilder {
     for (final node in state.nodes) {
       final sense = senses[node.tokenIndex];
 
-      final signature = node.projection.source;
-      final morphology = _morphClassifier.classify(signature);
+      // final signature = node.projection.source;
+      // final morphology = _morphClassifier.classify(signature);
 
       switch (sense?.type) {
         case SemanticType.event:
@@ -145,19 +145,27 @@ class SemanticBuilder {
             SemanticEvent(
               node.tokenIndex,
               sense!,
-              morphology: morphology,
+              // morphology: morphology,
               socket: socket,
             ),
           );
           break;
         case SemanticType.property:
           graph.addNode(
-            SemanticProperty(node.tokenIndex, sense!, morphology: morphology),
+            SemanticProperty(
+              node.tokenIndex,
+              sense!,
+              // morphology: morphology
+            ),
           );
           break;
         case SemanticType.entity:
           graph.addNode(
-            SemanticEntity(node.tokenIndex, sense!, morphology: morphology),
+            SemanticEntity(
+              node.tokenIndex,
+              sense!,
+              // morphology: morphology
+            ),
           );
           break;
         case SemanticType.gramma:
@@ -174,21 +182,33 @@ class SemanticBuilder {
 
   void _createBuckets() {
     for (final rel in state.relations) {
+      late SemanticNode nodeTo;
+      late SemanticNode nodeFrom;
+
+      if (graph.nodes.containsKey(rel.to.tokenIndex)) {
+        if (graph.nodes.containsKey(rel.from.tokenIndex)) {
+          nodeFrom = graph.nodes[rel.from.tokenIndex]!;
+        } else {
+          continue;
+        }
+        nodeTo = graph.nodes[rel.to.tokenIndex]!;
+      } else {
+        continue;
+      }
       switch (rel.kind) {
         case RelationKind.subject:
           if (graph.buckets.last.agent != null) {
             graph.buckets.add(Bucket());
           }
-          graph.buckets.last.theme = graph.nodes[rel.to.tokenIndex];
-          graph.buckets.last.agent = graph.nodes[rel.from.tokenIndex];
+          graph.buckets.last.theme = nodeTo as SemanticEvent;
+          graph.buckets.last.agent = nodeFrom as SemanticEntity;
           break;
         case RelationKind.object:
-          final node = graph.nodes[rel.to.tokenIndex]!;
-          if (graph.buckets.last.theme != node) {
+          if (graph.buckets.last.theme != nodeTo) {
             graph.buckets.add(Bucket());
-            graph.buckets.last.theme = node;
+            graph.buckets.last.theme = nodeTo as SemanticEvent;
           } else {
-            graph.buckets.last.recipient.add(graph.nodes[rel.from.tokenIndex]);
+            graph.buckets.last.recipient.add(nodeFrom);
           }
           break;
         // case RelationKind.indirectObject:
@@ -201,7 +221,7 @@ class SemanticBuilder {
           if (graph.buckets.last.recipient.isEmpty) {
             graph.buckets.add(Bucket());
           }
-          graph.buckets.last.recipient.add(graph.nodes[rel.from.tokenIndex]);
+          graph.buckets.last.recipient.add(nodeFrom);
           break;
 
         default:

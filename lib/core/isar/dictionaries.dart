@@ -5,39 +5,36 @@ part 'dictionaries.g.dart';
 
 @embedded
 class Shoresh {
-  late String root;
+  final String root;
   // late int radicalCount; // == root.length
-  late bool weak;
+  final bool weak;
 
-  Shoresh();
+  Shoresh({this.root = "", this.weak = false});
 
   factory Shoresh.fromMap(Map<String, dynamic> map) {
-    return Shoresh()
-      ..root = map["root"]
-      ..weak = map["weak"];
+    return Shoresh(root: map["root"], weak: map["weak"]);
   }
 }
 
 @embedded
 interface class SurfaceSignature {
-  late String surface; // the word with nekudots
+  final String surface; // the word with nekudots
 
-  late int indexSense;
-  late int indexSignature;
+  final String indexSense;
+  final String indexSignature;
 
-  SurfaceSignature();
+  SurfaceSignature({this.surface = "", this.indexSense = "0", this.indexSignature = "0"});
 
   factory SurfaceSignature.fromMap(Map<String, dynamic> map) {
-    return SurfaceSignature()
-      ..surface = map["surface"]
-      ..indexSense = map["indexSense"]
-      ..indexSignature = map["indexSignature"];
+    return SurfaceSignature(surface: map["surface"], indexSense: map["idSense"], indexSignature: map["idSignature"]);
   }
 }
 
 @collection
 class Dict {
   Id id = Isar.autoIncrement;
+
+  final String hash; // firebase id
 
   final String word;
 
@@ -52,6 +49,7 @@ class Dict {
   List<SurfaceSignature> signatures;
 
   Dict({
+    required this.hash,
     required this.word,
     required this.origin,
     required this.stage,
@@ -61,6 +59,7 @@ class Dict {
 
   factory Dict.fromMap(Map<String, dynamic> map) {
     return Dict(
+      hash: map["hash"],
       word: map["word"],
       origin: Origin.values.byName(map["origin"]),
       stage: Stage.values.byName(map["stage"]),

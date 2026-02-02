@@ -3,36 +3,46 @@ import 'package:isar/isar.dart';
 part 'books.g.dart';
 
 @Collection()
-interface class Book {
+class Book {
   Id id = Isar.autoIncrement;
+  final String hash; // fireId
 
-  late String name;
+  final String name;
 
-  late List<ChaptersMetaData> chapters;
-  late List<String>? pagesMetaData; // Numer of pages | your names
-  late List<PageData> pages;
+  List<ChaptersMetaData> chapters;
+  List<String> pagesMetaData; // Numer of pages | your names
+  List<PageData> pages;
 
-  Book( { required this.name, required this.chapters, this.pagesMetaData, required this.pages});
-  
+  Book({
+    required this.hash,
+    required this.name,
+    required this.chapters,
+    required this.pagesMetaData,
+    required this.pages,
+  });
 }
 
 @embedded
 interface class ChaptersMetaData {
-  String? name;
-  List<int>? range;
+  String name;
+  List<int> range;
 
-  ChaptersMetaData({ this.name, this.range});
+  ChaptersMetaData([this.name = "", this.range = const []]);
 }
 
 @embedded
 interface class PageData {
-  late List<VerseData> verses;
+  List<String> verses;
+  PageData([this.verses = const []]);
 
+  factory PageData.fromMap(Map<String, dynamic> map) {
+    return PageData(
+      List<String>.from(map["verses"]),
+    );
+  }
 }
 
-@embedded
-interface class VerseData {
-  late String key;
-  late List<String> hebrewWords;
+extension PageDataExtensions on Book {
+  ///
+  Book withGrowablePages() => this..pages = pages.toList();
 }
-

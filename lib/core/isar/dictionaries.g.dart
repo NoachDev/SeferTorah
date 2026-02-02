@@ -17,32 +17,37 @@ const DictSchema = CollectionSchema(
   name: r'Dict',
   id: 987444509729091105,
   properties: {
-    r'origin': PropertySchema(
+    r'hash': PropertySchema(
       id: 0,
+      name: r'hash',
+      type: IsarType.string,
+    ),
+    r'origin': PropertySchema(
+      id: 1,
       name: r'origin',
       type: IsarType.string,
       enumMap: _DictoriginEnumValueMap,
     ),
     r'shoresh': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'shoresh',
       type: IsarType.object,
       target: r'Shoresh',
     ),
     r'signatures': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'signatures',
       type: IsarType.objectList,
       target: r'SurfaceSignature',
     ),
     r'stage': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'stage',
       type: IsarType.string,
       enumMap: _DictstageEnumValueMap,
     ),
     r'word': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'word',
       type: IsarType.string,
     )
@@ -70,6 +75,7 @@ int _dictEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.hash.length * 3;
   bytesCount += 3 + object.origin.name.length * 3;
   {
     final value = object.shoresh;
@@ -98,21 +104,22 @@ void _dictSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.origin.name);
+  writer.writeString(offsets[0], object.hash);
+  writer.writeString(offsets[1], object.origin.name);
   writer.writeObject<Shoresh>(
-    offsets[1],
+    offsets[2],
     allOffsets,
     ShoreshSchema.serialize,
     object.shoresh,
   );
   writer.writeObjectList<SurfaceSignature>(
-    offsets[2],
+    offsets[3],
     allOffsets,
     SurfaceSignatureSchema.serialize,
     object.signatures,
   );
-  writer.writeString(offsets[3], object.stage.name);
-  writer.writeString(offsets[4], object.word);
+  writer.writeString(offsets[4], object.stage.name);
+  writer.writeString(offsets[5], object.word);
 }
 
 Dict _dictDeserialize(
@@ -122,23 +129,24 @@ Dict _dictDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Dict(
-    origin: _DictoriginValueEnumMap[reader.readStringOrNull(offsets[0])] ??
+    hash: reader.readString(offsets[0]),
+    origin: _DictoriginValueEnumMap[reader.readStringOrNull(offsets[1])] ??
         Origin.native,
     shoresh: reader.readObjectOrNull<Shoresh>(
-      offsets[1],
+      offsets[2],
       ShoreshSchema.deserialize,
       allOffsets,
     ),
     signatures: reader.readObjectList<SurfaceSignature>(
-          offsets[2],
+          offsets[3],
           SurfaceSignatureSchema.deserialize,
           allOffsets,
           SurfaceSignature(),
         ) ??
         [],
-    stage: _DictstageValueEnumMap[reader.readStringOrNull(offsets[3])] ??
+    stage: _DictstageValueEnumMap[reader.readStringOrNull(offsets[4])] ??
         Stage.biblical,
-    word: reader.readString(offsets[4]),
+    word: reader.readString(offsets[5]),
   );
   object.id = id;
   return object;
@@ -152,15 +160,17 @@ P _dictDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
+      return (reader.readString(offset)) as P;
+    case 1:
       return (_DictoriginValueEnumMap[reader.readStringOrNull(offset)] ??
           Origin.native) as P;
-    case 1:
+    case 2:
       return (reader.readObjectOrNull<Shoresh>(
         offset,
         ShoreshSchema.deserialize,
         allOffsets,
       )) as P;
-    case 2:
+    case 3:
       return (reader.readObjectList<SurfaceSignature>(
             offset,
             SurfaceSignatureSchema.deserialize,
@@ -168,10 +178,10 @@ P _dictDeserializeProp<P>(
             SurfaceSignature(),
           ) ??
           []) as P;
-    case 3:
+    case 4:
       return (_DictstageValueEnumMap[reader.readStringOrNull(offset)] ??
           Stage.biblical) as P;
-    case 4:
+    case 5:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -289,6 +299,134 @@ extension DictQueryWhere on QueryBuilder<Dict, Dict, QWhereClause> {
 }
 
 extension DictQueryFilter on QueryBuilder<Dict, Dict, QFilterCondition> {
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> hashEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> hashGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> hashLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> hashBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'hash',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> hashStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> hashEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> hashContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> hashMatches(String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'hash',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> hashIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hash',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterFilterCondition> hashIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'hash',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Dict, Dict, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -845,6 +983,18 @@ extension DictQueryObject on QueryBuilder<Dict, Dict, QFilterCondition> {
 extension DictQueryLinks on QueryBuilder<Dict, Dict, QFilterCondition> {}
 
 extension DictQuerySortBy on QueryBuilder<Dict, Dict, QSortBy> {
+  QueryBuilder<Dict, Dict, QAfterSortBy> sortByHash() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hash', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterSortBy> sortByHashDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hash', Sort.desc);
+    });
+  }
+
   QueryBuilder<Dict, Dict, QAfterSortBy> sortByOrigin() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'origin', Sort.asc);
@@ -883,6 +1033,18 @@ extension DictQuerySortBy on QueryBuilder<Dict, Dict, QSortBy> {
 }
 
 extension DictQuerySortThenBy on QueryBuilder<Dict, Dict, QSortThenBy> {
+  QueryBuilder<Dict, Dict, QAfterSortBy> thenByHash() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hash', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Dict, Dict, QAfterSortBy> thenByHashDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hash', Sort.desc);
+    });
+  }
+
   QueryBuilder<Dict, Dict, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -933,6 +1095,13 @@ extension DictQuerySortThenBy on QueryBuilder<Dict, Dict, QSortThenBy> {
 }
 
 extension DictQueryWhereDistinct on QueryBuilder<Dict, Dict, QDistinct> {
+  QueryBuilder<Dict, Dict, QDistinct> distinctByHash(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hash', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Dict, Dict, QDistinct> distinctByOrigin(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -959,6 +1128,12 @@ extension DictQueryProperty on QueryBuilder<Dict, Dict, QQueryProperty> {
   QueryBuilder<Dict, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Dict, String, QQueryOperations> hashProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hash');
     });
   }
 
@@ -1048,9 +1223,10 @@ Shoresh _shoreshDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Shoresh();
-  object.root = reader.readString(offsets[0]);
-  object.weak = reader.readBool(offsets[1]);
+  final object = Shoresh(
+    root: reader.readStringOrNull(offsets[0]) ?? "",
+    weak: reader.readBoolOrNull(offsets[1]) ?? false,
+  );
   return object;
 }
 
@@ -1062,9 +1238,9 @@ P _shoreshDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset) ?? "") as P;
     case 1:
-      return (reader.readBool(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -1226,12 +1402,12 @@ const SurfaceSignatureSchema = Schema(
     r'indexSense': PropertySchema(
       id: 0,
       name: r'indexSense',
-      type: IsarType.long,
+      type: IsarType.string,
     ),
     r'indexSignature': PropertySchema(
       id: 1,
       name: r'indexSignature',
-      type: IsarType.long,
+      type: IsarType.string,
     ),
     r'surface': PropertySchema(
       id: 2,
@@ -1251,6 +1427,8 @@ int _surfaceSignatureEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.indexSense.length * 3;
+  bytesCount += 3 + object.indexSignature.length * 3;
   bytesCount += 3 + object.surface.length * 3;
   return bytesCount;
 }
@@ -1261,8 +1439,8 @@ void _surfaceSignatureSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.indexSense);
-  writer.writeLong(offsets[1], object.indexSignature);
+  writer.writeString(offsets[0], object.indexSense);
+  writer.writeString(offsets[1], object.indexSignature);
   writer.writeString(offsets[2], object.surface);
 }
 
@@ -1272,10 +1450,11 @@ SurfaceSignature _surfaceSignatureDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = SurfaceSignature();
-  object.indexSense = reader.readLong(offsets[0]);
-  object.indexSignature = reader.readLong(offsets[1]);
-  object.surface = reader.readString(offsets[2]);
+  final object = SurfaceSignature(
+    indexSense: reader.readStringOrNull(offsets[0]) ?? "0",
+    indexSignature: reader.readStringOrNull(offsets[1]) ?? "0",
+    surface: reader.readStringOrNull(offsets[2]) ?? "",
+  );
   return object;
 }
 
@@ -1287,11 +1466,11 @@ P _surfaceSignatureDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset) ?? "0") as P;
     case 1:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset) ?? "0") as P;
     case 2:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset) ?? "") as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -1300,49 +1479,58 @@ P _surfaceSignatureDeserializeProp<P>(
 extension SurfaceSignatureQueryFilter
     on QueryBuilder<SurfaceSignature, SurfaceSignature, QFilterCondition> {
   QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
-      indexSenseEqualTo(int value) {
+      indexSenseEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'indexSense',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
       indexSenseGreaterThan(
-    int value, {
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'indexSense',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
       indexSenseLessThan(
-    int value, {
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'indexSense',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
       indexSenseBetween(
-    int lower,
-    int upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1351,54 +1539,134 @@ extension SurfaceSignatureQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
-      indexSignatureEqualTo(int value) {
+      indexSenseStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'indexSense',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
+      indexSenseEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'indexSense',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
+      indexSenseContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'indexSense',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
+      indexSenseMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'indexSense',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
+      indexSenseIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'indexSense',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
+      indexSenseIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'indexSense',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
+      indexSignatureEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'indexSignature',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
       indexSignatureGreaterThan(
-    int value, {
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'indexSignature',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
       indexSignatureLessThan(
-    int value, {
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'indexSignature',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
       indexSignatureBetween(
-    int lower,
-    int upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1407,6 +1675,77 @@ extension SurfaceSignatureQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
+      indexSignatureStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'indexSignature',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
+      indexSignatureEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'indexSignature',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
+      indexSignatureContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'indexSignature',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
+      indexSignatureMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'indexSignature',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
+      indexSignatureIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'indexSignature',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<SurfaceSignature, SurfaceSignature, QAfterFilterCondition>
+      indexSignatureIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'indexSignature',
+        value: '',
       ));
     });
   }

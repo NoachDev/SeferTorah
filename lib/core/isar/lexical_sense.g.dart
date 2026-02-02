@@ -17,18 +17,23 @@ const LexicalSenseSchema = CollectionSchema(
   name: r'LexicalSense',
   id: 6112900662662195741,
   properties: {
-    r'lemmaPt': PropertySchema(
+    r'hash': PropertySchema(
       id: 0,
+      name: r'hash',
+      type: IsarType.string,
+    ),
+    r'lemmaPt': PropertySchema(
+      id: 1,
       name: r'lemmaPt',
       type: IsarType.string,
     ),
     r'lemmaPtCommentary': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'lemmaPtCommentary',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'type',
       type: IsarType.string,
       enumMap: _LexicalSensetypeEnumValueMap,
@@ -54,6 +59,7 @@ int _lexicalSenseEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.hash.length * 3;
   {
     final value = object.lemmaPt;
     if (value != null) {
@@ -76,9 +82,10 @@ void _lexicalSenseSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.lemmaPt);
-  writer.writeString(offsets[1], object.lemmaPtCommentary);
-  writer.writeString(offsets[2], object.type.name);
+  writer.writeString(offsets[0], object.hash);
+  writer.writeString(offsets[1], object.lemmaPt);
+  writer.writeString(offsets[2], object.lemmaPtCommentary);
+  writer.writeString(offsets[3], object.type.name);
 }
 
 LexicalSense _lexicalSenseDeserialize(
@@ -88,9 +95,10 @@ LexicalSense _lexicalSenseDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = LexicalSense(
-    lemmaPt: reader.readStringOrNull(offsets[0]),
-    lemmaPtCommentary: reader.readStringOrNull(offsets[1]),
-    type: _LexicalSensetypeValueEnumMap[reader.readStringOrNull(offsets[2])] ??
+    hash: reader.readString(offsets[0]),
+    lemmaPt: reader.readStringOrNull(offsets[1]),
+    lemmaPtCommentary: reader.readStringOrNull(offsets[2]),
+    type: _LexicalSensetypeValueEnumMap[reader.readStringOrNull(offsets[3])] ??
         SemanticType.event,
   );
   object.id = id;
@@ -105,10 +113,12 @@ P _lexicalSenseDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
       return (_LexicalSensetypeValueEnumMap[reader.readStringOrNull(offset)] ??
           SemanticType.event) as P;
     default:
@@ -223,6 +233,140 @@ extension LexicalSenseQueryWhere
 
 extension LexicalSenseQueryFilter
     on QueryBuilder<LexicalSense, LexicalSense, QFilterCondition> {
+  QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition> hashEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition>
+      hashGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition> hashLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition> hashBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'hash',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition>
+      hashStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition> hashEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition> hashContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition> hashMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'hash',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition>
+      hashIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hash',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition>
+      hashIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'hash',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<LexicalSense, LexicalSense, QAfterFilterCondition> idEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
@@ -727,6 +871,18 @@ extension LexicalSenseQueryLinks
 
 extension LexicalSenseQuerySortBy
     on QueryBuilder<LexicalSense, LexicalSense, QSortBy> {
+  QueryBuilder<LexicalSense, LexicalSense, QAfterSortBy> sortByHash() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hash', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterSortBy> sortByHashDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hash', Sort.desc);
+    });
+  }
+
   QueryBuilder<LexicalSense, LexicalSense, QAfterSortBy> sortByLemmaPt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lemmaPt', Sort.asc);
@@ -768,6 +924,18 @@ extension LexicalSenseQuerySortBy
 
 extension LexicalSenseQuerySortThenBy
     on QueryBuilder<LexicalSense, LexicalSense, QSortThenBy> {
+  QueryBuilder<LexicalSense, LexicalSense, QAfterSortBy> thenByHash() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hash', Sort.asc);
+    });
+  }
+
+  QueryBuilder<LexicalSense, LexicalSense, QAfterSortBy> thenByHashDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hash', Sort.desc);
+    });
+  }
+
   QueryBuilder<LexicalSense, LexicalSense, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -821,6 +989,13 @@ extension LexicalSenseQuerySortThenBy
 
 extension LexicalSenseQueryWhereDistinct
     on QueryBuilder<LexicalSense, LexicalSense, QDistinct> {
+  QueryBuilder<LexicalSense, LexicalSense, QDistinct> distinctByHash(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hash', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<LexicalSense, LexicalSense, QDistinct> distinctByLemmaPt(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -849,6 +1024,12 @@ extension LexicalSenseQueryProperty
   QueryBuilder<LexicalSense, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<LexicalSense, String, QQueryOperations> hashProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hash');
     });
   }
 

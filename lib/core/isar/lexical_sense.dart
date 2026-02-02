@@ -7,13 +7,16 @@ part 'lexical_sense.g.dart';
 class LexicalSense {
   Id id = Isar.autoIncrement;
 
+  final String hash; // firebase id
+
   @Enumerated(EnumType.name)
   final SemanticType type;
   
-  final String? lemmaPt;         // escrever
+  final String? lemmaPt;
   final String? lemmaPtCommentary;
 
   LexicalSense({
+    required this.hash,
     required this.type,
     this.lemmaPt,
     this.lemmaPtCommentary,
@@ -21,6 +24,7 @@ class LexicalSense {
 
   factory LexicalSense.fromMap(Map<String, dynamic> map) {
     return LexicalSense(
+      hash: map["hash"],
       type: SemanticType.values.byName(map["type"]),
       lemmaPt: map.containsKey("lemmaPt") ? map["lemmaPt"] : null,
       lemmaPtCommentary: map.containsKey("lemmaPtCommentary") ? map["lemmaPtCommentary"] : null,
@@ -29,6 +33,6 @@ class LexicalSense {
 
   @override
   String toString() {
-    return "Snese : $type , $lemmaPt , $lemmaPtCommentary";
+    return "Snese : $type , $lemmaPt [$lemmaPtCommentary]";
   }
 }

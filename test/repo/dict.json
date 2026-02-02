@@ -1,5 +1,6 @@
 [
   {
+    "hash" : "1",
     "word": "כתב",
     "origin": "native",
     "stage": "biblical",
@@ -10,72 +11,78 @@
     "signatures": [
       {
         "surface": "כָּתַב",
-        "indexSense": 1,
-        "indexSignature": 1
+        "idSense": "1",
+        "idSignature": "1"
       }
     ]
   },
   {
+    "hash" : "2",
     "word": "משה",
     "origin": "native",
     "stage": "biblical",
     "signatures": [
       {
         "surface": "מֹשֶׁה",
-        "indexSense": 2,
-        "indexSignature": 2
+        "idSense": "2",
+        "idSignature": "2"
       }
     ]
   },
   {
+    "hash" : "3",
     "word": "ספר",
     "origin": "native",
     "stage": "biblical",
     "signatures": [
       {
         "surface": "סֵפֶר",
-        "indexSense": 3,
-        "indexSignature": 2
+        "idSense": "3",
+        "idSignature": "2"
       }
     ]
   },
   {
+    "hash" : "4",
     "word": "אשר",
     "origin": "native",
     "stage": "biblical",
     "signatures": [
       {
         "surface": "אֲשֶׁר",
-        "indexSense": 4,
-        "indexSignature": 3
+        "idSense": "4",
+        "idSignature": "3"
       }
     ]
   },
   {
+    "hash" : "5",
     "word": "נתן",
     "origin": "native",
     "stage": "biblical",
     "signatures": [
       {
         "surface": "נָתַן",
-        "indexSense": 5,
-        "indexSignature": 4
+        "idSense": "5",
+        "idSignature": "4"
       }
     ]
   },
   {
+    "hash" : "6",
     "word": "נשיא",
     "origin": "native",
     "stage": "biblical",
     "signatures": [
       {
         "surface": "נָּשִׂיא",
-        "indexSense": 6,
-        "indexSignature": 5
+        "idSense": "6",
+        "idSignature": "5"
       }
     ]
   },
   {
+    "hash" : "7",
     "word": "בני",
     "origin": "native",
     "stage": "biblical",
@@ -86,12 +93,13 @@
     "signatures": [
       {
         "surface": "בְנֵי",
-        "indexSense": 7,
-        "indexSignature": 6
+        "idSense": "7",
+        "idSignature": "6"
       }
     ]
   },
   {
+    "hash" : "8",
     "word": "ישראל",
     "origin": "native",
     "stage": "biblical",
@@ -102,12 +110,13 @@
     "signatures": [
       {
         "surface": "יִשְׂרָאֵל",
-        "indexSense": 8,
-        "indexSignature": 14
+        "idSense": "8",
+        "idSignature": "14"
       }
     ]
   },
   {
+    "hash" : "9",
     "word": "מדבר",
     "origin": "native",
     "stage": "biblical",
@@ -118,89 +127,96 @@
     "signatures": [
       {
         "surface": "מִּדְבָּר",
-        "indexSense": 9,
-        "indexSignature": 7
+        "idSense": "9",
+        "idSignature": "7"
       }
     ]
   },
   {
+    "hash" : "10",
     "word": "ו",
     "origin": "native",
     "stage": "biblical",
     "signatures": [
       {
         "surface": "וַ",
-        "indexSense": 10,
-        "indexSignature": 3
+        "idSense": "10",
+        "idSignature": "3"
       }
     ]
   },
   {
+    "hash" : "11",
     "word": "ה",
     "origin": "native",
     "stage": "biblical",
     "signatures": [
       {
         "surface": "הַ",
-        "indexSense": 11,
-        "indexSignature": 3
+        "idSense": "11",
+        "idSignature": "3"
       }
     ]
   },
   {
+    "hash" : "12",
     "word": "ב",
     "origin": "native",
     "stage": "biblical",
     "signatures": [
       {
         "surface": "בַּ",
-        "indexSense": 12,
-        "indexSignature": 3
+        "idSense": "12",
+        "idSignature": "3"
       }
     ]
   },
   {
+    "hash" : "13",
     "word": "ל",
     "origin": "native",
     "stage": "biblical",
     "signatures": [
       {
         "surface": "לְ",
-        "indexSense": 13,
-        "indexSignature": 3
+        "idSense": "13",
+        "idSignature": "3"
       }
     ]
   },
   {
+    "hash" : "14",
     "word": "את",
     "origin": "native",
     "stage": "biblical",
     "signatures": [
       {
         "surface": "אֶת",
-        "indexSense": 14,
-        "indexSignature": 8
+        "idSense": "14",
+        "idSignature": "8"
       },
       {
         "surface": "אֶת",
-        "indexSense": 14,
-        "indexSignature": 9
+        "idSense": "14",
+        "idSignature": "9"
       }
     ]
   },
   {
+    "hash" : "15",
     "word": "י",
     "origin": "native",
     "stage": "biblical",
     "signatures": [
       {
         "surface": "י",
-        "indexSense": 14,
-        "indexSignature": 10
+        "idSense": "14",
+        "idSignature": "10"
       }
     ]
   },
   {
+    "hash" : "16",
     "word": "גדול",
     "origin": "native",
     "stage": "biblical",
@@ -211,20 +227,21 @@
     "signatures": [
       {
         "surface": "גָדוֹל",
-        "indexSense": 16,
-        "indexSignature": 11
+        "idSense": "16",
+        "idSignature": "11"
       }
     ]
   },
   {
+    "hash" : "17",
     "word": "הוא",
     "origin": "native",
     "stage": "biblical",
     "signatures": [
       {
         "surface": "הוּא",
-        "indexSense": 17,
-        "indexSignature": 12
+        "idSense": "17",
+        "idSignature": "12"
       }
     ]
   }

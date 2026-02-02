@@ -11,53 +11,43 @@ import 'package:sefertorah/core/nlp/syntax_builder.dart';
 
 final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-/// Controll of Schema Books from DB isar
+/// A interface for "matadata" acquired from RepositoryOfBooks
+///
+interface class MetaData {
+  final List<ChaptersMetaData> chapters;
+  final List<String> pagesMetaData;
+
+  MetaData(this.chapters, this.pagesMetaData);
+
+  String getChapter(int index) =>
+      chapters
+          .where((value) {
+            if (value.range[0] <= index && value.range[1] >= index) {
+              return true;
+            }
+
+            return false;
+          })
+          .firstOrNull
+          ?.name ??
+      "Unknown";
+
+  String getPageName(int index) => pagesMetaData[index];
+}
+
+/// Controll of Books Schema from DB isar
 ///
 /// by param [name] - A field of collection / document
 mixin class RepositoryOfBooks {
   late String name;
-  late String fireId;
   late int isarId;
-
-  // RepositoryOfBooks(this.name);
-
-  Future<Book?> _getBook() => isar.books.filter().nameEqualTo(name).findFirst();
-
-  /// Get chapter from book with [name]
-  ///
-  /// identify if the index are in range of an chapter
-  Future<ChaptersMetaData?> getChapterByIndex(Book? isarBook, int index) async {
-    isarBook ??= await isar.books.get(isarId);
-
-    return isarBook?.chapters.where((value) {
-      if (value.range![0] <= index && value.range![1] >= index) {
-        return true;
-      }
-      return false;
-    }).first;
-  }
 
   /// Get the meta datas from the book with [name]
   ///
-  /// The key zero is the Chpters mata data,
-  /// The key one is the pages meta data
-  Future<Map<byte, dynamic>> getMetaData() async {
+  Future<MetaData> getMetaData() async {
     var isarBook = await isar.books.get(isarId);
 
-    if (isarBook != null) {
-      return {0: isarBook.chapters, 1: isarBook.pagesMetaData};
-    }
-
-    throw ErrorDescription("Not find the book \$ $isarId in isar");
-  }
-
-  Future<List<List<String>>> _tranfromRefs(
-    Book? isarBook,
-    PageData data,
-  ) async {
-    isarBook ??= await isar.books.get(isarId);
-
-    return List.empty();
+    return MetaData(isarBook!.chapters, isarBook.pagesMetaData);
   }
 
   /// Get from isar a page with [index] from book with [name]
@@ -65,43 +55,48 @@ mixin class RepositoryOfBooks {
   /// if not found in isar, serach in firebase
   ///
   /// The Page is a colection ( list of list ) of refrences ( Strings ),
-  ///  reference will in end locate a object in dictionary
+  ///  reference will in end locate a object in dictionaries
   ///
-  Future<List<List<String>>?> getPageData(int index) async {
-    var isarbook = await _getBook();
+  Future<List<String>> getPageData(int index, String chapter) async {
+    var isarBook = await isar.books.get(isarId);
 
-    if (isarbook != null) {
-      if (index >= isarbook.pages.length) {
-        return _tranfromRefs(isarbook, isarbook.pages[index]);
-      }
-
-      var chapter = await getChapterByIndex(isarbook, index);
-
+    if (index + 1 > isarBook!.pages.length) {
       QuerySnapshot<Map<String, dynamic>> firePageSnapshot = await _db
           .collection("Books")
-          .doc(fireId)
-          .collection(chapter!.name!) // chapter
+          .doc(isarBook.hash)
+          .collection(chapter) // chapter
           .where("index", isEqualTo: index) // page
           .get();
 
-      Map<String, dynamic> pageData = firePageSnapshot.docs.first.data()
-        ..remove("index");
+      if (firePageSnapshot.docs.first.exists) {
+        Map<String, dynamic> data = firePageSnapshot.docs.first.data()
+          ..remove("index");
 
-      var page = pageData as PageData;
+        final page = PageData.fromMap(data);
 
-      await isar.writeTxn(() async {
-        isarbook.pages.add(page);
-        await isar.books.put(isarbook);
-      });
+        await isar.writeTxn(() async {
+          final book = isarBook.withGrowablePages();
+          book.pages.add(page);
+          await isar.books.put(book);
+        });
 
-      return _tranfromRefs(isarbook, page);
+        return page.verses;
+      }
+
+      throw ErrorDescription("Not find the book in FireBase");
     }
 
-    throw ErrorDescription("Not find the book in isar");
+    return isarBook.pages[index].verses;
   }
 
+  /// Get the book from isar.
+  ///
+  /// When not find in isar, serach in FireStore to crete a local version of it - with empety data (pages).
+  ///
+  /// And, set background variables like [isarId]
+  ///
   Future<bool> conteinsBook() async {
-    var isarBook = await _getBook();
+    var isarBook = await isar.books.filter().nameEqualTo(name).findFirst();
 
     if (isarBook != null) {
       isarId = isarBook.id;
@@ -120,19 +115,18 @@ mixin class RepositoryOfBooks {
     var fireBook = fireBookSnapshot.docs.first;
     var fireBookData = fireBook.data();
 
-    fireId = fireBook.id;
-
     List<dynamic> chapters = fireBookData["Chapters"];
 
     // create a "empty" ( without Data ) book
     await isar.writeTxn(() async {
       var book = Book(
+        hash: fireBook.id,
         name: name,
         chapters: chapters.map<ChaptersMetaData>((value) {
           List range = value["range"];
           var name = value["name"] as String;
 
-          return ChaptersMetaData(name: name, range: range.cast<int>());
+          return ChaptersMetaData(name, range.cast<int>());
         }).toList(),
         pages: [],
         pagesMetaData: fireBookData.containsKey("lenght")
@@ -141,8 +135,6 @@ mixin class RepositoryOfBooks {
                 (index) => "Pagina : ${index + 1}", // default name
               )
             : fireBookData["pages"], // custom name
-        // pages: [],
-        // pagesMetaData: [],
       );
       await isar.books.put(book);
       isarId = book.id;
@@ -152,25 +144,61 @@ mixin class RepositoryOfBooks {
   }
 }
 
+/// Controll of Dictionaries Schema from DB isar
+///
 class RepositoryOfDictionaries {
-  Future<Signature> getSignById(int id) async {
-    final sig = await isar.signatures.get(id);
+  Future<Signature> getSignById(String id) async {
+    final sign = await isar.signatures.filter().hashEqualTo(id).findFirst();
 
-    if (sig != null) {
-      return sig;
+    if (sign == null) {
+      DocumentSnapshot<Map<String, dynamic>> fireSignSnapshot = await _db
+          .collection("Signatures")
+          .doc(id)
+          .get();
+      if (fireSignSnapshot.exists) {
+        final sign = Signature.fromMap({
+          ...fireSignSnapshot.data()!,
+          "hash": id,
+        });
+
+        await isar.writeTxn(() async {
+          await isar.signatures.put(sign);
+        });
+
+        return sign;
+      }
+      throw ErrorDescription("Not find the signature with id: $id");
     }
 
-    throw ErrorDescription("Not find the signature with id: $id");
+    return sign;
   }
 
-  Future<LexicalSense> getSenseById(int id) async {
-    var sense = await isar.lexicalSenses.get(id);
+  Future<LexicalSense> getSenseById(String id) async {
+    var sense = await isar.lexicalSenses.filter().hashEqualTo(id).findFirst();
 
-    if (sense != null) {
-      return sense;
+    if (sense == null) {
+      DocumentSnapshot<Map<String, dynamic>> fireSenseSnapshot = await _db
+          .collection("LexicalSenses")
+          .doc(id)
+          .get();
+
+      if (fireSenseSnapshot.exists) {
+        final sign = LexicalSense.fromMap({
+          ...fireSenseSnapshot.data()!,
+          "hash": id,
+        });
+
+        await isar.writeTxn(() async {
+          await isar.lexicalSenses.put(sign);
+        });
+
+        return sign;
+      }
+
+      throw ErrorDescription("Not find the Sense with id: $id");
     }
 
-    throw ErrorDescription("Not find the Sense with id: $id");
+    return sense;
   }
 
   List<String> getUrlFromSentence(
@@ -202,34 +230,40 @@ class RepositoryOfDictionaries {
     return word.replaceAll(RegExp(r'[\u0591-\u05C7]'), '');
   }
 
+  ///Fetch from isar or firebase a Dict in url form
+  ///
+  ///exemple of [url] : $Dict::uuDRmhaYI5qECDx2W2xW
+  ///
+  ///TODO : get the dict from a reference ( a link to a verse ) e.g. $Ref{book:LPYycCGfwmxa7YoXbtSE,chapter:Devarim,page:0,verse:0}
   Future<Dict> getDictByUrl(String url) async {
-    var parts = url.split("::");
+    final parts = url.split("::");
 
     if (parts[0] != r"$Dict") {
       throw ErrorDescription("Invalid dictionary URL: $url");
     }
 
-    var id = parts[1];
-    // var assinatureIndex = int.parse(parts[2]);
-    late int parse;
-
-    try {
-      parse = int.parse(id);
-    } catch (e) {
-      throw ErrorDescription("Invalid dictionary URL: $url");
-    }
-
-    var dict = await isar.dicts.get(parse);
+    final id = parts[1].trim();
+    final dict = await isar.dicts.filter().hashEqualTo(id).findFirst();
 
     if (dict == null) {
+      DocumentSnapshot<Map<String, dynamic>> fireDictSnapshot = await _db
+          .collection("Dictionaries")
+          .doc(id)
+          .get();
+      
+
+      if (fireDictSnapshot.exists) {
+        final dict = Dict.fromMap({...fireDictSnapshot.data()!, "hash": id});
+
+        await isar.writeTxn(() async {
+          await isar.dicts.put(dict);
+        });
+
+        return dict;
+      }
+
       throw ErrorDescription("Dictionary not found for id: $id");
     }
-
-    // if (assinatureIndex < 0 || assinatureIndex >= dict.assinatures.length) {
-    //   throw ErrorDescription(
-    //     "Assinature index out of range: $assinatureIndex for dict with: $word",
-    //   );
-    // }
 
     return dict;
   }
@@ -246,53 +280,21 @@ class RepoOfOneVerse extends RepositoryOfDictionaries {
 
   RepoOfOneVerse(this.sentence);
 
-  String? _normSentence;
+  Map<String, String>? _normSentence;
 
-  String get normSentence => _normSentence ?? _getNormSentence(sentence);
+  Map<String, String> get normSentence =>
+      _normSentence ?? _getNormSentence(sentence);
 
   bool get buildedSynataxGraph {
     if (tokensSentence.isNotEmpty) {
-      syntaxBuilder.build(tokensSentence);
+      if (syntaxBuilder.hypotheses.isEmpty) {
+        syntaxBuilder.build(tokensSentence);
+      }
+      
       return true;
     }
 
     return false;
-  }
-
-  String _getNormSentence(String sent) {
-    final url = getUrlFromSentence(sent, false, true).reversed;
-
-    return url
-        .map((String e) {
-          if (e.startsWith(r'$Dict')) {
-            final parts = e.split("::");
-            late int index;
-
-            if (parts.length == 3) {
-              index = int.parse(parts[2]);
-            } else {
-              // TODO: when have more of one projection, the graph define them
-
-              index = 0;
-            }
-
-            return _cachedDicts
-                .where((val) => val.id == int.parse(parts[1]))
-                .first
-                .signatures[index]
-                .surface;
-          } else if (e.startsWith(r'$Mark')) {
-            return e.split("::")[1];
-          }
-
-          // else if (e.startsWith(r'$Group'))
-          final add = _getNormSentence(sent);
-          add.replaceAll(" ", "");
-
-          return add;
-        })
-        .join(" ")
-        .trim();
   }
 
   Future<bool> get buildedSemanticGraph async {
@@ -317,6 +319,48 @@ class RepoOfOneVerse extends RepositoryOfDictionaries {
     }
 
     return false;
+  }
+
+  Map<String, String> _getNormSentence(String sent) {
+    final url = getUrlFromSentence(sent, false, true).reversed;
+
+    return Map.fromEntries(
+      url.map((String e) {
+        if (e.startsWith(r'$Dict')) {
+          final parts = e.split("::");
+          late int index;
+
+          if (parts.length == 3) {
+            index = int.parse(parts[2]);
+          } else {
+            // TODO: when have more of one projection, the graph define them
+
+            index = 0;
+          }
+
+          final dict = _cachedDicts
+              .where((val) => val.hash == parts[1])
+              .first;
+
+          return MapEntry(
+            dict.signatures[index].surface,
+            semanticGraphs
+                .first
+                .graph
+                .nodes[_cachedDicts.indexOf(dict)]
+                .sense
+                .lemmaPt,
+          );
+        } else if (e.startsWith(r'$Mark')) {
+          return MapEntry(e.split("::")[1], "");
+        }
+
+        // else if (e.startsWith(r'$Group')){
+        final add = _getNormSentence(sent);
+        return MapEntry(add.keys.join().trim(), add.values.join(" ".trim()));
+        // }
+      }),
+    );
   }
 
   Future<void> buildTokens() async {

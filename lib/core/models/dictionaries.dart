@@ -75,7 +75,7 @@ class MorphologicalCategory {
   @Deprecated("Use namedCategory instead")
   @override
   String toString(){
-    return "${category.name} - ${decorations?.map((elm) => elm.toString())}";
+    return "${category.name} - ${decorations.map((elm) => elm.toString())}";
   }
 
   String namedCategory({String? language}) {

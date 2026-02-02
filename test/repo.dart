@@ -16,7 +16,7 @@ class CreateRepo {
     final List doc = jsonDecode(jsonString);
 
     await isar.writeTxn(() async {
-      isar.signatures.putAll(doc.map((elm) => Signature.fromMap(elm)).toList());
+      isar.signatures.putAll(doc.map((elm) => Signature.fromMap({... elm, "hash" : (doc.indexOf(elm) + 1).toString()})).toList());
     });
   }
 
@@ -40,7 +40,7 @@ class CreateRepo {
     final List doc = jsonDecode(jsonString);
 
     await isar.writeTxn(() async {
-      isar.lexicalSenses.putAll(doc.map((elm) => LexicalSense.fromMap(elm)).toList());
+      isar.lexicalSenses.putAll(doc.map((elm) => LexicalSense.fromMap({...elm, "hash" : (doc.indexOf(elm) + 1).toString()})).toList());
     });
     // await isar.writeTxn(() async {
     //   List<LexicalSense> senses = [];

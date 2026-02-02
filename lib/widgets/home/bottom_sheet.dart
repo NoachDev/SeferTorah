@@ -71,11 +71,11 @@ class _ListBooksState extends State<ListBooks> {
                         AppRoutes.textViewer,
                         extra: BooksController(
                           [widget.books.keys.elementAt(index)],
-
                           /// TODO : need be geted from graph
                           [Colors.lightBlue.shade100],
-                          null,
-                          null,
+                          {
+                            0: null,
+                          },
                         ),
                       ),
                       ref.read(extendedController.notifier).hide(),

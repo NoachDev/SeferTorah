@@ -28,8 +28,13 @@ const SignatureSchema = CollectionSchema(
       name: r'categoricalTraits',
       type: IsarType.byteList,
     ),
-    r'internalMorphologicalTraits': PropertySchema(
+    r'hash': PropertySchema(
       id: 2,
+      name: r'hash',
+      type: IsarType.string,
+    ),
+    r'internalMorphologicalTraits': PropertySchema(
+      id: 3,
       name: r'internalMorphologicalTraits',
       type: IsarType.object,
       target: r'MorphologicalTraits',
@@ -68,6 +73,7 @@ int _signatureEstimateSize(
     }
   }
   bytesCount += 3 + object.categoricalTraits.length;
+  bytesCount += 3 + object.hash.length * 3;
   {
     final value = object.internalMorphologicalTraits;
     if (value != null) {
@@ -92,8 +98,9 @@ void _signatureSerialize(
     object.abstractLexicalTraits,
   );
   writer.writeByteList(offsets[1], object.categoricalTraits);
+  writer.writeString(offsets[2], object.hash);
   writer.writeObject<MorphologicalTraits>(
-    offsets[2],
+    offsets[3],
     allOffsets,
     MorphologicalTraitsSchema.serialize,
     object.internalMorphologicalTraits,
@@ -113,8 +120,9 @@ Signature _signatureDeserialize(
       allOffsets,
     ),
     categoricalTraits: reader.readByteList(offsets[1]) ?? [],
+    hash: reader.readString(offsets[2]),
     internalMorphologicalTraits: reader.readObjectOrNull<MorphologicalTraits>(
-      offsets[2],
+      offsets[3],
       MorphologicalTraitsSchema.deserialize,
       allOffsets,
     ),
@@ -139,6 +147,8 @@ P _signatureDeserializeProp<P>(
     case 1:
       return (reader.readByteList(offset) ?? []) as P;
     case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
       return (reader.readObjectOrNull<MorphologicalTraits>(
         offset,
         MorphologicalTraitsSchema.deserialize,
@@ -403,6 +413,136 @@ extension SignatureQueryFilter
     });
   }
 
+  QueryBuilder<Signature, Signature, QAfterFilterCondition> hashEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterFilterCondition> hashGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterFilterCondition> hashLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterFilterCondition> hashBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'hash',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterFilterCondition> hashStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterFilterCondition> hashEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterFilterCondition> hashContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'hash',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterFilterCondition> hashMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'hash',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterFilterCondition> hashIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hash',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterFilterCondition> hashIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'hash',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Signature, Signature, QAfterFilterCondition> idEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
@@ -495,10 +635,34 @@ extension SignatureQueryObject
 extension SignatureQueryLinks
     on QueryBuilder<Signature, Signature, QFilterCondition> {}
 
-extension SignatureQuerySortBy on QueryBuilder<Signature, Signature, QSortBy> {}
+extension SignatureQuerySortBy on QueryBuilder<Signature, Signature, QSortBy> {
+  QueryBuilder<Signature, Signature, QAfterSortBy> sortByHash() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hash', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterSortBy> sortByHashDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hash', Sort.desc);
+    });
+  }
+}
 
 extension SignatureQuerySortThenBy
     on QueryBuilder<Signature, Signature, QSortThenBy> {
+  QueryBuilder<Signature, Signature, QAfterSortBy> thenByHash() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hash', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QAfterSortBy> thenByHashDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hash', Sort.desc);
+    });
+  }
+
   QueryBuilder<Signature, Signature, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -517,6 +681,13 @@ extension SignatureQueryWhereDistinct
   QueryBuilder<Signature, Signature, QDistinct> distinctByCategoricalTraits() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'categoricalTraits');
+    });
+  }
+
+  QueryBuilder<Signature, Signature, QDistinct> distinctByHash(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hash', caseSensitive: caseSensitive);
     });
   }
 }
@@ -540,6 +711,12 @@ extension SignatureQueryProperty
       categoricalTraitsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'categoricalTraits');
+    });
+  }
+
+  QueryBuilder<Signature, String, QQueryOperations> hashProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hash');
     });
   }
 

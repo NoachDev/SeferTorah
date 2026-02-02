@@ -1,6 +1,6 @@
 import 'package:sefertorah/core/isar/lexical_sense.dart';
 import 'package:sefertorah/core/models/dictionaries.dart';
-import 'package:sefertorah/core/nlp/dsl.dart';
+// import 'package:sefertorah/core/nlp/dsl.dart';
 import 'package:sefertorah/core/nlp/syntax_builder.dart';
 
 // typedef SemanticRole = String; // "agent", "theme", "recipient", "location"
@@ -28,15 +28,15 @@ abstract class SemanticNode {
 }
 
 class SemanticEvent extends SemanticNode {
-  SemanticEvent(super.id, super.sense, {super.morphology, super.socket});
+  SemanticEvent(super.tokenIndex, super.sense, {super.morphology, super.socket});
 }
 
 class SemanticEntity extends SemanticNode {
-  SemanticEntity(super.id, super.sense, {super.morphology, super.socket});
+  SemanticEntity(super.tokenIndex, super.sense, {super.morphology, super.socket});
 }
 
 class SemanticProperty extends SemanticNode {
-  SemanticProperty(super.id, super.sense, {super.morphology, super.socket});
+  SemanticProperty(super.tokenIndex, super.sense, {super.morphology, super.socket});
 }
 
 class SemanticEdge {
@@ -121,7 +121,7 @@ class SemanticBuilder {
   final SemanticGraph graph = SemanticGraph();
   final ParseState state;
   final List<LexicalSense?> senses;
-  final _morphClassifier = MorphProjection();
+  // final _morphClassifier = MorphProjection();
 
   void _createNodes() {
     bool grammalacking = false;

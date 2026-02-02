@@ -93,12 +93,14 @@ interface class LexicalTraits {
 @collection
 class Signature {
   Id id = Isar.autoIncrement;
+  final String hash; // firebase id
 
   List<byte> categoricalTraits; // is a 3d vector
   MorphologicalTraits? internalMorphologicalTraits;
   LexicalTraits? abstractLexicalTraits;
 
   Signature({
+    required this.hash,
     required this.categoricalTraits,
     this.internalMorphologicalTraits,
     this.abstractLexicalTraits,
@@ -106,6 +108,7 @@ class Signature {
 
   factory Signature.fromMap(Map<String, dynamic> map) {
     return Signature(
+      hash: map["hash"],
       categoricalTraits: List<int>.from(map["categoricalTraits"]),
       internalMorphologicalTraits:
           map.containsKey("internalMorphologicalTraits")

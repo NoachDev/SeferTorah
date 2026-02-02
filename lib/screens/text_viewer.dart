@@ -69,7 +69,16 @@ class TextViewer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var metaData = ref.watch(booksMetaData(controller.booksName.first));
+    final metaData = ref.watch(booksMetaData);
+    final pageData = ref.watch(booksPageData);
+
+    if (metaData.value == null && metaData.error == null && !metaData.isLoading ){
+      ref.read(booksMetaData.notifier).setMetaData(controller.bookName);
+    }
+
+    if (metaData.value != null && pageData.value!.isEmpty){
+      ref.read(booksPageData.notifier).setPageData(controller.bookName, controller.page, metaData.value!.getChapter(controller.page));
+    }
 
     bool isScrolling = false;
 
@@ -104,7 +113,7 @@ class TextViewer extends ConsumerWidget {
         backgroundColor: controller.colors.first,
 
         title: Text(
-          controller.booksName.first,
+          controller.bookName,
           style: GoogleFonts.ruthie(color: Colors.black, fontSize: 32),
         ),
 
@@ -126,7 +135,7 @@ class TextViewer extends ConsumerWidget {
       /// TODO : Save and Load preview scroll ( verse ) and page - when null
       body: metaData.error != null
           ? Center(child: Text(metaData.error.toString()))
-          : metaData.isLoading
+          : metaData.isLoading || metaData.value == null
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
@@ -138,8 +147,8 @@ class TextViewer extends ConsumerWidget {
                   // padding: const EdgeInsets.all(15.0),
                   margin: EdgeInsets.symmetric(vertical: 15),
                   child: InfoLabel(
-                    chpterName: metaData.value![0][0].name!,
-                    pageName: metaData.value![1][0],
+                    chapterName: metaData.value!.getChapter(controller.page),
+                    pageName: metaData.value!.getPageName(controller.page),
                   ),
                 ),
                 Expanded(
@@ -148,81 +157,96 @@ class TextViewer extends ConsumerWidget {
                     child: NotificationListener<ScrollUpdateNotification>(
                       onNotification: handleScrollUpdate,
                       child: TapRegionSurface(
-                        child: ListView.builder(
-                          itemCount: 10,
-                          padding: EdgeInsets.only(
-                            bottom:
-                                MediaQuery.of(context).size.height * 0.55 + 10,
-                          ),
+                        child: pageData.error != null
+                            ? Center(child: Text(pageData.error.toString()))
+                            : pageData.isLoading ? const Center(child: CircularProgressIndicator()) :
+                              ListView.builder(
+                                itemCount: pageData.value?.length ?? 0,
+                                padding: EdgeInsets.only(
+                                  bottom:
+                                      MediaQuery.of(context).size.height *
+                                          0.55 +
+                                      10,
+                                ),
 
-                          itemBuilder: (context, index) {
-                            bool isSelected = false;
-                            GlobalObjectKey key = GlobalObjectKey(index);
+                                itemBuilder: (context, index) {
+                                  bool isSelected = false;
+                                  GlobalObjectKey key = GlobalObjectKey(index);
 
-                            void fitScroll() => Scrollable.ensureVisible(
-                              key.currentContext!,
-                              alignment: 0.1,
-                              duration: Durations.long3,
-                            );
+                                  void fitScroll() => Scrollable.ensureVisible(
+                                    key.currentContext!,
+                                    alignment: 0.1,
+                                    duration: Durations.long3,
+                                  );
 
-                            return StatefulBuilder(
-                              builder: (context, setState) {
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    bottom: isSelected ? 20 : 15,
-                                  ),
-                                  child: Row(
-                                    key: key,
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-
-                                    children: [
-                                      TextWidget(
-                                        isSelected: isSelected,
-                                        isScrolling: scrollState,
-                                        fitScroll: fitScroll,
-                                        hebrewTextKeys: ["", ""],
-                                        hebrewTextValues: ["terra", "era"],
-                                        translatedText: "A terra era sem forma e vazia; e havia trevas sobre a face do abismo, mas o Espírito de Deus pairava sobre a face das águas",
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.all(
-                                          isSelected ? 15 : 8.0,
+                                  return StatefulBuilder(
+                                    builder: (context, setState) {
+                                      return Padding(
+                                        padding: EdgeInsets.only(
+                                          bottom: isSelected ? 20 : 15,
                                         ),
-                                        child: IconButton(
-                                          onPressed: () {
-                                            setState(
-                                              () => isSelected = !isSelected,
-                                            );
+                                        child: Row(
+                                          key: key,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
 
-                                            if (isSelected) {
-                                              fitScroll();
-                                            }
-                                          },
-                                          icon: isSelected
-                                              ? Icon(
-                                                  Icons.chevron_right,
-                                                  color: Theme.of(
-                                                    context,
-                                                  ).colorScheme.onPrimary,
-                                                )
-                                              : Text(
-                                                  numberToCharcter(index + 1),
-                                                  style:
-                                                      GoogleFonts.notoSansHebrew(
-                                                        fontSize: 16,
+                                          children: [
+                                            TextWidget(
+                                              isSelected: isSelected,
+                                              isScrolling: scrollState,
+                                              fitScroll: fitScroll,
+                                              hebrewTextKeys: pageData
+                                                  .value![index]
+                                                  .hebrewTextKeys,
+                                              hebrewTextValues: pageData
+                                                  .value![index]
+                                                  .hebrewTextValues,
+                                              translatedText: pageData
+                                                  .value![index]
+                                                  .translatedText,
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.all(
+                                                isSelected ? 15 : 8.0,
+                                              ),
+                                              child: IconButton(
+                                                onPressed: () {
+                                                  setState(
+                                                    () => isSelected =
+                                                        !isSelected,
+                                                  );
+
+                                                  if (isSelected) {
+                                                    fitScroll();
+                                                  }
+                                                },
+                                                icon: isSelected
+                                                    ? Icon(
+                                                        Icons.chevron_right,
+                                                        color: Theme.of(
+                                                          context,
+                                                        ).colorScheme.onPrimary,
+                                                      )
+                                                    : Text(
+                                                        numberToCharcter(
+                                                          index + 1,
+                                                        ),
+                                                        style:
+                                                            GoogleFonts.notoSansHebrew(
+                                                              fontSize: 16,
+                                                            ),
                                                       ),
-                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                       ),
                     ),
                   ),
